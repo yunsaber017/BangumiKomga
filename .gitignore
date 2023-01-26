@@ -1,7 +1,7 @@
 config.py
-log.txt
-failed.txt
+failedBooks.txt
+failedSeries.txt
 __pycache__/
 .idea/
-mangas.progress
-mydocker-compose.yml
+mangabooks.progress
+mangaseries.progress

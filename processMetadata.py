@@ -231,25 +231,31 @@ def setKomangaBookMetadata(book, seriesID):
 
     # 跳过无bangumi链接的漫画系列
     try:
-        bangumiLink = None
+        bangumiSeriesLink = None
         for link in seriesMetadata['metadata']["links"]:
             if link["label"].lower() == "bangumi":
-                bangumiLink = link["url"]
+                bangumiSeriesLink = link["url"]
                 break
-        if bangumiLink == None:
+        if bangumiSeriesLink == None:
             return komangaBookMetadata
     except:
         return komangaBookMetadata
 
-    first_name, second_name = __guessMangaName(seriesMetadata["name"])
-    print("Getting metadata for: " + first_name+", "+second_name)
+    # 优先使用已配置的bangumi链接进行查询
+    if bangumiSeriesLink == None:
+        first_name, second_name = __guessMangaName(seriesMetadata["name"])
+        print("Getting metadata for: " + first_name+", "+second_name)
 
-    seriesSubject_id, seriesSubject_url = getUrlFromSearch(first_name)
-    if(seriesSubject_url == ""):
-        seriesSubject_id, seriesSubject_url = getUrlFromSearch(second_name)
+        seriesSubject_id, seriesSubject_url = getUrlFromSearch(first_name)
         if(seriesSubject_url == ""):
-            print("No result found or error occured")
-            return komangaBookMetadata
+            seriesSubject_id, seriesSubject_url = getUrlFromSearch(second_name)
+            if(seriesSubject_url == ""):
+                print("No result found or error occured")
+                return komangaBookMetadata
+    else:
+        seriesSubject_url = bangumiSeriesLink
+        seriesSubject_id = re.sub(
+            'https://bgm.tv/subject/', '', bangumiSeriesLink)
 
     try:
         seriesSubjectRelations = json.loads(
