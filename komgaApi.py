@@ -26,7 +26,7 @@ class seriesMetadata:
         self.ageRating = 12  # 分级
         self.language = "zh-CN"  # 语言 https://www.ietf.org/rfc/bcp/bcp47.txt
         self.links = "[]"  # 链接
-        self.totalBookCount = None
+        self.totalBookCount = 1  # must be greater than 0
 
         self.isvalid = False
 

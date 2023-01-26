@@ -53,9 +53,10 @@ def __setStatus(manga_metadata, manga):
 def __setTotalBookCount(manga_metadata, subjectRelations):
     totalBookCount = 0
     for relation in subjectRelations:
+        # TODO 冷门漫画可能无关联条目，需要完善总册数判断逻辑
         if relation["relation"] == "单行本":
             totalBookCount = totalBookCount+1
-    manga_metadata.totalBookCount = totalBookCount
+    manga_metadata.totalBookCount = totalBookCount if totalBookCount == 0 else 1
 
 
 def __setLanguage(manga_metadata, manga_filename):
