@@ -39,18 +39,57 @@ def refreshBookMetadata(seriesID):
     '''
     更新漫画系列的单册元数据
     '''
+    # init
+    komangaBookMetadata = bookMetadata()
+
+    seriesMetadata = getKomangaSeriesMetadata(seriesID)
+    # 跳过无bangumi链接的漫画系列
+    try:
+        bangumiSeriesLink = None
+        for link in seriesMetadata['metadata']["links"]:
+            if link["label"].lower() == "bangumi":
+                bangumiSeriesLink = link["url"]
+                break
+        if bangumiSeriesLink == None:
+            return komangaBookMetadata
+    except:
+        return komangaBookMetadata
+
+    # 优先使用已配置的bangumi链接进行查询
+    if bangumiSeriesLink != None and useExistBangumiLink == True:
+        seriesSubject_url = bangumiSeriesLink
+        seriesSubject_id = re.sub(r'\D', '', bangumiSeriesLink)
+    else:
+        first_name, second_name = guessMangaName(seriesMetadata["name"])
+        print("Getting metadata for: " + first_name+", "+second_name)
+
+        seriesSubject_id, seriesSubject_url = getUrlFromSearch(first_name)
+        if(seriesSubject_url == ""):
+            seriesSubject_id, seriesSubject_url = getUrlFromSearch(second_name)
+            if(seriesSubject_url == ""):
+                print("No result found or error occured")
+                return komangaBookMetadata
+
+    try:
+        seriesSubjectRelations = json.loads(
+            getSubjectRelations(seriesSubject_id))
+    except:
+        return komangaBookMetadata
+
     processedMangaBooks = "mangabooks.progress"
+    skipBookLists = skipProcessedManga(processedMangaBooks)
     failedfile = open("failedBooks.txt", "w")
     # 处理系列下的单册漫画
     for book in getKomangaSeriesBooks(seriesID)['content']:
         bookName = book['name']
         bookID = book['id']
-        if(str(bookID) in skipProcessedManga(processedMangaBooks)):
+        if(str(bookID) in skipBookLists):
             print("Manga book " + str(bookName) +
                   " was already updated, skipping...")
             continue
         print("Updating book: " + str(bookName))
-        md = setKomangaBookMetadata(book, seriesID)
+        md = setKomangaBookMetadata(
+            book, komangaBookMetadata, seriesSubjectRelations)
 
         if(md.isvalid == False):
             print("----------------------------------------------------")
@@ -69,7 +108,8 @@ def refreshBookMetadata(seriesID):
             "isbn": md.isbn,
             "number": md.number,
             "links": md.links,
-            "releaseDate": md.releaseDate
+            "releaseDate": md.releaseDate,
+            "numberSort": md.numberSort
         }
 
         patch = updateKomangaBookMetadata(bookID, json.dumps(json_data))
@@ -114,6 +154,7 @@ def refreshMetadata():
     failedfile = open("failedSeries.txt", "w")
 
     processedMangaSeries = "mangaseries.progress"
+    skipSeriesLists = skipProcessedManga(processedMangaSeries)
 
     seriesnum = 0
     for series in komanga_info['content']:
@@ -128,6 +169,7 @@ def refreshMetadata():
         seriesID = series['id']
 
         # 优先使用已配置的bangumi链接进行查询
+        # TODO 检查当前元数据与链接条目元数据是否一致
         bangumiLink = None
         for link in series['metadata']["links"]:
             if link["label"].lower() == "bangumi":
@@ -135,7 +177,7 @@ def refreshMetadata():
                 break
 
         # 跳过已处理的漫画系列
-        if(str(seriesID) in skipProcessedManga(processedMangaSeries) and bangumiLink != None):
+        if(str(seriesID) in skipSeriesLists and bangumiLink != None):
             print("Manga " + str(name) + " was already updated, skipping...")
             refreshBookMetadata(seriesID)
             continue

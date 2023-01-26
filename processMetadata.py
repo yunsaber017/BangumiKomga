@@ -26,7 +26,6 @@ def __setGenres(manga_metadata, manga):
     genrelist.append(manga["platform"])
     for info in manga["infobox"]:
         if info["key"] == "连载杂志":
-            print(type(info["value"]))
             if type(info["value"]) == list:
                 for v in info["value"]:
                     genrelist.append(v["v"])
@@ -63,7 +62,7 @@ def __setTotalBookCount(manga_metadata, subjectRelations):
         # TODO 冷门漫画可能无关联条目，需要完善总册数判断逻辑
         if relation["relation"] == "单行本":
             totalBookCount = totalBookCount+1
-    manga_metadata.totalBookCount = totalBookCount if totalBookCount == 0 else 1
+    manga_metadata.totalBookCount = totalBookCount if totalBookCount != 0 else 1
 
 
 def __setLanguage(manga_metadata, manga_filename):
@@ -75,6 +74,11 @@ def __setLanguage(manga_metadata, manga_filename):
 
 def __setAlternateTitles(manga_metadata, manga):
     alternateTitles = []
+    title = {
+        "label": "Original",
+        "title": manga["name"]
+    }
+    alternateTitles.append(title)
     if manga["name_cn"] != '':
         title = {
             "label": "Bangumi",
@@ -129,7 +133,7 @@ def __setLinks(manga_metadata, manga, subject_url, subjectRelations):
     manga_metadata.links = links
 
 
-def __guessMangaName(query):
+def guessMangaName(query):
     '''
     猜测漫画名，并返回猜测结果
     '''
@@ -161,8 +165,11 @@ def setKomangaSeriesMetadata(mangaFileName, bangumiLink=None):
     komangaSeriesMetadata = seriesMetadata()
 
     # 优先使用已配置的bangumi链接进行查询
-    if bangumiLink == None:
-        first_name, second_name = __guessMangaName(mangaFileName)
+    if bangumiLink != None and useExistBangumiLink == True:
+        subject_url = bangumiLink
+        subject_id = re.sub(r'\D', '', bangumiLink)
+    else:
+        first_name, second_name = guessMangaName(mangaFileName)
         print("Getting metadata for: " + first_name+", "+second_name)
 
         subject_id, subject_url = getUrlFromSearch(first_name)
@@ -171,9 +178,6 @@ def setKomangaSeriesMetadata(mangaFileName, bangumiLink=None):
             if(subject_url == ""):
                 print("No result found or error occured")
                 return komangaSeriesMetadata
-    else:
-        subject_url = bangumiLink
-        subject_id = re.sub('https://bgm.tv/subject/', '', bangumiLink)
 
     try:
         bangumiMetadata = json.loads(getSubject(subject_id))
@@ -220,56 +224,29 @@ def setKomangaSeriesMetadata(mangaFileName, bangumiLink=None):
     return komangaSeriesMetadata
 
 
-def setKomangaBookMetadata(book, seriesID):
+def setKomangaBookMetadata(book, komangaBookMetadata, seriesSubjectRelations):
     '''
     获取漫画单册元数据
     '''
-    # init
-    komangaBookMetadata = bookMetadata()
 
-    seriesMetadata = getKomangaSeriesMetadata(seriesID)
-
-    # 跳过无bangumi链接的漫画系列
+    # komga提取到的册数：按文件名顺序添加序号
+    numberFromKomga = book["number"]
+    numberSortFromKomga = book['metadata']['numberSort']
+    # 文件名提取到的册数
     try:
-        bangumiSeriesLink = None
-        for link in seriesMetadata['metadata']["links"]:
-            if link["label"].lower() == "bangumi":
-                bangumiSeriesLink = link["url"]
-                break
-        if bangumiSeriesLink == None:
-            return komangaBookMetadata
+        numberFromName = int(re.sub(r'\D', '', book["name"]))
     except:
-        return komangaBookMetadata
-
-    # 优先使用已配置的bangumi链接进行查询
-    if bangumiSeriesLink == None:
-        first_name, second_name = __guessMangaName(seriesMetadata["name"])
-        print("Getting metadata for: " + first_name+", "+second_name)
-
-        seriesSubject_id, seriesSubject_url = getUrlFromSearch(first_name)
-        if(seriesSubject_url == ""):
-            seriesSubject_id, seriesSubject_url = getUrlFromSearch(second_name)
-            if(seriesSubject_url == ""):
-                print("No result found or error occured")
-                return komangaBookMetadata
-    else:
-        seriesSubject_url = bangumiSeriesLink
-        seriesSubject_id = re.sub(
-            'https://bgm.tv/subject/', '', bangumiSeriesLink)
-
-    try:
-        seriesSubjectRelations = json.loads(
-            getSubjectRelations(seriesSubject_id))
-    except:
-        return komangaBookMetadata
-
-    # 直接使用komga提取到的册数
-    number = book["number"]
+        numberFromName = 0
+    # 暂时直接以文件名册数为准
+    if numberFromKomga != numberFromName:
+        print("wrong komga number")
+    number = numberFromName
+    # number
+    komangaBookMetadata.number = number
+    komangaBookMetadata.numberSort = number
 
     # title 暂不做修改
     komangaBookMetadata.title = book["name"]
-    # number 暂不做修改
-    komangaBookMetadata.number = number
 
     for relation in seriesSubjectRelations:
         pattern = re.compile(r'[0-9]{1,5}')

@@ -12,7 +12,7 @@ This metadata then gets converted to be compatible to Komga and then gets sent t
 
 - [x] 漫画系列添加元数据
 - [x] 单册漫画添加元数据
-- [x] 优先使用漫画系列配置的bangumi链接。在系列元数据的链接中填入`Bangumi`和该漫画系列的bangumi地址
+- [x] 优先使用漫画系列配置的bangumi链接
 
 ### TODO
 
@@ -36,7 +36,10 @@ This metadata then gets converted to be compatible to Komga and then gets sent t
 
     "keepProgress" can be set to either "True" or "False". If it is set to true, successfully updated Mangas will be stored in a list and not be updated on the next run.
 
+    "useExistBangumiLink" 如果设置为`True`，并且在系列元数据的链接中填入`Bangumi`和该漫画系列的bangumi地址，则后续处理将基于此链接地址
+
     "libraryID" 仅处理该库中的漫画。komga界面点击库即可获得，形如：`0B79XX3NP97K9`
+
 3. Run the script using `python refreshMetadata.py` 注意：会覆盖旧元数据
 
 

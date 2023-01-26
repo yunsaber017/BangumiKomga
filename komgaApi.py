@@ -45,6 +45,7 @@ class bookMetadata:
         self.tags = "[]"    # 标签
         self.releaseDate = None  # 发布日期
         self.links = "[]"  # 链接
+        self.numberSort = 0  # 短序号
 
         self.isvalid = False
 
