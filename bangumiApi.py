@@ -31,11 +31,14 @@ def getUrlFromSearch(keyword):
     global sortKeyword
     sortKeyword = keyword
     url = "https://api.bgm.tv/search/subject/" + \
-        keyword+"?responseGroup=large&type=1&limit=1"
+        keyword+"?responseGroup=large&type=1"
     res = requests.get(url=url, headers=headers)
 
     content = res.text
     status_code = res.status_code
+
+    subject_id = ''
+    subject_url = ''
 
     if(status_code != 200):
         print("Status code was " + str(status_code) + ", so skipping...")
@@ -47,8 +50,16 @@ def getUrlFromSearch(keyword):
         searchResults = json.loads(content)["list"]
         searchResults.sort(key=sortByLevenshtein)
 
-        subject_id = searchResults[0]['id']
-        subject_url = searchResults[0]['url']
+        # bangumi中漫画、小说都属于书籍类型。
+        # 由于komga不支持小说文字的读取，这里直接忽略`小说`类型，避免返回错误结果
+        comicCount = 0
+        while comicCount < len(searchResults):
+            platform = getSubject(searchResults[comicCount]['id'])["platform"]
+            if platform == "漫画":
+                subject_id = searchResults[0]['id']
+                subject_url = searchResults[0]['url']
+                break
+            comicCount = comicCount+1
     except:
         return '', ''
 
