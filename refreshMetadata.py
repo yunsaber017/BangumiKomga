@@ -127,14 +127,21 @@ def refreshMetadata():
         name = series['name']
         seriesID = series['id']
 
+        # 优先使用已配置的bangumi链接进行查询
+        bangumiLink = None
+        for link in series['metadata']["links"]:
+            if link["label"].lower() == "bangumi":
+                bangumiLink = link["url"]
+                break
+
         # 跳过已处理的漫画系列
-        if(str(seriesID) in skipProcessedManga(processedMangaSeries)):
+        if(str(seriesID) in skipProcessedManga(processedMangaSeries) and bangumiLink != None):
             print("Manga " + str(name) + " was already updated, skipping...")
             refreshBookMetadata(seriesID)
             continue
         print("Updating: " + str(name))
 
-        md = setKomangaSeriesMetadata(name)
+        md = setKomangaSeriesMetadata(name, bangumiLink)
 
         if(md.isvalid == False):
             print("----------------------------------------------------")

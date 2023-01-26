@@ -153,22 +153,28 @@ def __guessMangaName(query):
         return temp, temp
 
 
-def setKomangaSeriesMetadata(mangaFileName):
+def setKomangaSeriesMetadata(mangaFileName, bangumiLink=None):
     '''
     获取漫画系列元数据
     '''
     # init
     komangaSeriesMetadata = seriesMetadata()
 
-    first_name, second_name = __guessMangaName(mangaFileName)
-    print("Getting metadata for: " + first_name+", "+second_name)
+    # 优先使用已配置的bangumi链接进行查询
+    if bangumiLink == None:
+        first_name, second_name = __guessMangaName(mangaFileName)
+        print("Getting metadata for: " + first_name+", "+second_name)
 
-    subject_id, subject_url = getUrlFromSearch(first_name)
-    if(subject_url == ""):
-        subject_id, subject_url = getUrlFromSearch(second_name)
+        subject_id, subject_url = getUrlFromSearch(first_name)
         if(subject_url == ""):
-            print("No result found or error occured")
-            return komangaSeriesMetadata
+            subject_id, subject_url = getUrlFromSearch(second_name)
+            if(subject_url == ""):
+                print("No result found or error occured")
+                return komangaSeriesMetadata
+    else:
+        subject_url = bangumiLink
+        subject_id = re.sub('https://bgm.tv/subject/', '', bangumiLink)
+
     try:
         bangumiMetadata = json.loads(getSubject(subject_id))
     except:
@@ -222,9 +228,15 @@ def setKomangaBookMetadata(book, seriesID):
     komangaBookMetadata = bookMetadata()
 
     seriesMetadata = getKomangaSeriesMetadata(seriesID)
+
+    # 跳过无bangumi链接的漫画系列
     try:
-        # TODO 快速跳过非bangumi系列，待调整
-        if len(seriesMetadata['metadata']["links"]) == 0:
+        bangumiLink = None
+        for link in seriesMetadata['metadata']["links"]:
+            if link["label"].lower() == "bangumi":
+                bangumiLink = link["url"]
+                break
+        if bangumiLink == None:
             return komangaBookMetadata
     except:
         return komangaBookMetadata

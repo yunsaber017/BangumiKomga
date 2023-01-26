@@ -12,6 +12,7 @@ This metadata then gets converted to be compatible to Komga and then gets sent t
 
 - [x] 漫画系列添加元数据
 - [x] 单册漫画添加元数据
+- [x] 优先使用漫画系列配置的bangumi链接。在系列元数据的链接中填入`Bangumi`和该漫画系列的bangumi地址
 
 ### TODO
 
