@@ -54,7 +54,8 @@ def getUrlFromSearch(keyword):
         # 由于komga不支持小说文字的读取，这里直接忽略`小说`类型，避免返回错误结果
         comicCount = 0
         while comicCount < len(searchResults):
-            platform = getSubject(searchResults[comicCount]['id'])["platform"]
+            platform = json.loads(getSubject(searchResults[comicCount]['id']))[
+                "platform"]
             if platform == "漫画":
                 subject_id = searchResults[0]['id']
                 subject_url = searchResults[0]['url']

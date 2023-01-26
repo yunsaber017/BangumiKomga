@@ -22,10 +22,17 @@ def __setTags(manga_metadata, manga):
 def __setGenres(manga_metadata, manga):
     genrelist = []
     # TODO 修正元数据值
+    # bangumi并没有将漫画划分流派，后续可以考虑从tags中提取匹配
+    genrelist.append(manga["platform"])
     for info in manga["infobox"]:
         if info["key"] == "连载杂志":
-            genrelist.append(info["value"])
-
+            print(type(info["value"]))
+            if type(info["value"]) == list:
+                for v in info["value"]:
+                    genrelist.append(v["v"])
+            else:
+                genrelist.append(info["value"])
+    # komga无评分/评级，暂时先将分数添加到流派字段中
     genrelist.append(str(round(manga["rating"]["score"]))+"分")
 
     manga_metadata.genres = genrelist
