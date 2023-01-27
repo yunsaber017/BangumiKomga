@@ -63,9 +63,11 @@ def refreshBookMetadata(seriesID):
         first_name, second_name = guessMangaName(seriesMetadata["name"])
         print("Getting metadata for: " + first_name+", "+second_name)
 
-        seriesSubject_id, seriesSubject_url = getUrlFromSearch(first_name)
+        seriesSubject_id, seriesSubject_url = getSeriesUrlFromSearch(
+            first_name)
         if(seriesSubject_url == ""):
-            seriesSubject_id, seriesSubject_url = getUrlFromSearch(second_name)
+            seriesSubject_id, seriesSubject_url = getSeriesUrlFromSearch(
+                second_name)
             if(seriesSubject_url == ""):
                 print("No result found or error occured")
                 return komangaBookMetadata

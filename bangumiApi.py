@@ -24,7 +24,7 @@ def sortByLevenshtein(searchResult):
         sortKeyword, searchResult["name_cn"]))
 
 
-def getUrlFromSearch(keyword):
+def getSeriesUrlFromSearch(keyword):
     '''
     获取搜索结果
     '''
@@ -52,15 +52,27 @@ def getUrlFromSearch(keyword):
 
         # bangumi中漫画、小说都属于书籍类型。
         # 由于komga不支持小说文字的读取，这里直接忽略`小说`类型，避免返回错误结果
-        comicCount = 0
-        while comicCount < len(searchResults):
-            platform = json.loads(getSubject(searchResults[comicCount]['id']))[
+        mangaCount = 0
+        while mangaCount < len(searchResults):
+            mangaID = searchResults[mangaCount]['id']
+            platform = json.loads(getSubject(mangaID))[
                 "platform"]
             if platform == "漫画":
-                subject_id = searchResults[0]['id']
-                subject_url = searchResults[0]['url']
-                break
-            comicCount = comicCount+1
+                subjectRelations = json.loads(
+                    getSubjectRelations(mangaID))
+                relationFlag = False
+                for relation in subjectRelations:
+                    # 区分漫画系列和漫画（单册）
+                    if relation["relation"] == "系列":
+                        relationFlag = True
+                        break
+                if relationFlag:
+                    mangaCount = mangaCount+1
+                    continue
+                else:
+                    subject_id = searchResults[0]['id']
+                    subject_url = searchResults[0]['url']
+                    break
     except:
         return '', ''
 

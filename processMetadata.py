@@ -172,9 +172,9 @@ def setKomangaSeriesMetadata(mangaFileName, bangumiLink=None):
         first_name, second_name = guessMangaName(mangaFileName)
         print("Getting metadata for: " + first_name+", "+second_name)
 
-        subject_id, subject_url = getUrlFromSearch(first_name)
+        subject_id, subject_url = getSeriesUrlFromSearch(first_name)
         if(subject_url == ""):
-            subject_id, subject_url = getUrlFromSearch(second_name)
+            subject_id, subject_url = getSeriesUrlFromSearch(second_name)
             if(subject_url == ""):
                 print("No result found or error occured")
                 return komangaSeriesMetadata
