@@ -35,7 +35,7 @@ def skipProcessedManga(filename):
     return progresslist
 
 
-def refreshBookMetadata(seriesID):
+def refreshBookMetadata(seriesID, fixBangumiInfo=True):
     '''
     更新漫画系列的单册元数据
     '''
@@ -85,7 +85,7 @@ def refreshBookMetadata(seriesID):
     for book in getKomangaSeriesBooks(seriesID)['content']:
         bookName = book['name']
         bookID = book['id']
-        if(str(bookID) in skipBookLists):
+        if(str(bookID) in skipBookLists and fixBangumiInfo):
             print("Manga book " + str(bookName) +
                   " was already updated, skipping...")
             continue
@@ -171,17 +171,25 @@ def refreshMetadata():
         seriesID = series['id']
 
         # 优先使用已配置的bangumi链接进行查询
-        # TODO 检查当前元数据与链接条目元数据是否一致
         bangumiLink = None
         for link in series['metadata']["links"]:
             if link["label"].lower() == "bangumi":
                 bangumiLink = link["url"]
                 break
 
-        # 跳过已处理的漫画系列
-        if(str(seriesID) in skipSeriesLists and bangumiLink != None):
+        # 检查当前元数据与链接条目元数据是否一致(当前仅检查别名中的`Original`)
+        fixBangumiInfo = True
+        if bangumiLink != None:
+            bangumiID = re.sub(r'\D', '', bangumiLink)
+            bangumiName = json.loads(getSubject(bangumiID))["name"]
+            for alternateTitle in series['metadata']["alternateTitles"]:
+                if alternateTitle["label"] == "Original" and alternateTitle["title"] != bangumiName:
+                    fixBangumiInfo = False
+
+                    # 跳过已处理的漫画系列
+        if(str(seriesID) in skipSeriesLists and bangumiLink != None and fixBangumiInfo):
             print("Manga " + str(name) + " was already updated, skipping...")
-            refreshBookMetadata(seriesID)
+            refreshBookMetadata(seriesID, fixBangumiInfo)
             continue
         print("Updating: " + str(name))
 
@@ -228,7 +236,7 @@ def refreshMetadata():
             except:
                 pass
 
-        refreshBookMetadata(seriesID)
+        refreshBookMetadata(seriesID, fixBangumiInfo)
 
     failedfile.close()
 

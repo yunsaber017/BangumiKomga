@@ -55,6 +55,7 @@ def getSeriesUrlFromSearch(keyword):
         mangaCount = 0
         while mangaCount < len(searchResults):
             mangaID = searchResults[mangaCount]['id']
+            mangaCount = mangaCount+1
             platform = json.loads(getSubject(mangaID))[
                 "platform"]
             if platform == "漫画":
@@ -67,7 +68,6 @@ def getSeriesUrlFromSearch(keyword):
                         relationFlag = True
                         break
                 if relationFlag:
-                    mangaCount = mangaCount+1
                     continue
                 else:
                     subject_id = searchResults[0]['id']
