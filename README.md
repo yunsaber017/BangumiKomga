@@ -6,6 +6,8 @@ This Script gets a list of every manga available on your Komga instance,
 looks it up one after another on [Bangumi](https://bgm.tv/) and gets the metadata for the specific series.
 This metadata then gets converted to be compatible to Komga and then gets sent to the server instance and added to the manga entry.
 
+![sample](sample.jpg)
+
 ## Features
 
 ### 已完成
