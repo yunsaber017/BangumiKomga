@@ -1,3 +1,4 @@
 requests
 zhconv
 levenshtein
+sqlite3

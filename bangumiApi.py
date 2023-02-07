@@ -3,119 +3,129 @@
 # Description: Bangumi API(https://github.com/bangumi/api)
 # ------------------------------------------------------------------
 
+
 import requests
-import json
 from Levenshtein import distance
-
-headers = {
-    'User-Agent': 'chu-shen/BangumiKomga (https://github.com/chu-shen/BangumiKomga)'
-}
-
-sortKeyword = ''
+from zhconv import convert
+from log import logger
 
 
-def sortByLevenshtein(searchResult):
-    '''
-    将Bangumi搜索结果按照字符串相似度进行排序
+class BangumiApi:
+    BASE_URL = "https://api.bgm.tv"
 
-    Bangumi搜索结果未排序，存在第一个结果非所需漫画的情况
-    '''
-    return min(distance(sortKeyword, searchResult["name"]), distance(
-        sortKeyword, searchResult["name_cn"]))
+    def __init__(self, access_token=None):
+        self.access_token = access_token
+        if self.access_token:
+            self.refresh_token()
 
+    def _get_headers(self):
+        headers = {
+            'User-Agent': 'chu-shen/BangumiKomga (https://github.com/chu-shen/BangumiKomga)'}
+        if self.access_token:
+            headers["Authorization"] = f"Bearer {self.access_token}"
+        return headers
 
-def getSeriesUrlFromSearch(keyword):
-    '''
-    获取搜索结果
-    '''
-    global sortKeyword
-    sortKeyword = keyword
-    url = "https://api.bgm.tv/search/subject/" + \
-        keyword+"?responseGroup=large&type=1"
-    res = requests.get(url=url, headers=headers)
+    def refresh_token(self):
+        # https://bgm.tv/dev/app
+        # https://next.bgm.tv/demo/access-token
+        return
 
-    content = res.text
-    status_code = res.status_code
+    def compute_name_distance(name, name_cn, infobox, target):
+        """
+        Computes the Levenshtein distance between name, name_cn, and infobox "别名" (if exists) and the target string.
 
-    subject_id = ''
-    subject_url = ''
-
-    if(status_code != 200):
-        print("Status code was " + str(status_code) + ", so skipping...")
-        if(status_code == 403):
-            print(content)
-        return "", ""
-
-    try:
-        searchResults = json.loads(content)["list"]
-        searchResults.sort(key=sortByLevenshtein)
-
-        # bangumi中漫画、小说都属于书籍类型。
-        # 由于komga不支持小说文字的读取，这里直接忽略`小说`类型，避免返回错误结果
-        mangaCount = 0
-        while mangaCount < len(searchResults):
-            mangaID = searchResults[mangaCount]['id']
-            mangaCount = mangaCount+1
-            platform = json.loads(getSubject(mangaID))[
-                "platform"]
-            if platform == "漫画":
-                subjectRelations = json.loads(
-                    getSubjectRelations(mangaID))
-                relationFlag = False
-                for relation in subjectRelations:
-                    # 区分漫画系列和漫画（单册）
-                    if relation["relation"] == "系列":
-                        relationFlag = True
-                        break
-                if relationFlag:
-                    continue
+        #TODO 简繁转换后计算距离
+        """
+        target_distance = distance(name, target)
+        if name_cn:
+            target_distance = min(target_distance, distance(name_cn, target))
+        for item in infobox:
+            if item["key"] == "别名":
+                if isinstance(item["value"], (list,)):  # 判断传入值是否为列表
+                    for alias in item["value"]:
+                        target_distance = min(
+                            target_distance, distance(alias["v"], target))
                 else:
-                    subject_id = searchResults[0]['id']
-                    subject_url = searchResults[0]['url']
-                    break
-    except:
-        return '', ''
+                    target_distance = min(
+                        target_distance, distance(item["value"], target))
+        return target_distance
 
-    return subject_id, subject_url
+    def search_subjects(self, query):
+        '''
+        获取搜索结果，并移除非漫画系列。返回具有完整元数据的条目
+        '''
+        query = convert(query, 'zh-cn')
+        url = f"{self.BASE_URL}/search/subject/{query}?responseGroup=large&type=1&max_results=25"
+        response = requests.get(url, headers=self._get_headers())
+        if response.status_code != 200:
+            raise Exception("Search subjects request failed")
 
+        # e.g. Artbooks.VOL.14 -> {"request":"\/search\/subject\/Artbooks.VOL.14?responseGroup=large&type=1","code":404,"error":"Not Found"}
+        try:
+            response_json = response.json()
+        except ValueError as e:
+            # bangumi无结果但返回正常
+            logger.exception(e)
+            return []
+        else:
+            # e.g. 川瀬绫 -> {"results":1,"list":null}
+            if "list" in response_json and isinstance(response_json["list"], (list,)):
+                results = response_json["list"]
+            else:
+                return []
 
-def getSubject(id):
-    '''
-    获取漫画元数据
-    '''
-    url = "https://api.bgm.tv/v0/subjects/" + str(id)
-    res = requests.get(url=url, headers=headers)
+        # 具有完整元数据的排序条目，可提升结果准确性，但增加请求次数
+        sort_results = []
+        for result in results:
+            manga_id = result['id']
+            manga_metadata = BangumiApi.get_subject_metadata(self, manga_id)
+            # bangumi书籍类型包括：漫画、小说、画集、其他
+            # 由于komga不支持小说文字的读取，这里直接忽略`小说`类型，避免返回错误结果
+            if manga_metadata["platform"] != "小说":
+                single_flag = True
+                for relation in BangumiApi.get_related_subjects(self, manga_id):
+                    # bangumi书籍系列包括：系列、单行本
+                    # 此处需去除漫画系列的单行本，避免干扰
+                    # bangumi数据中存在单行本与系列未建立联系的情况
+                    if relation["relation"] == "系列":
+                        single_flag = False
+                        break
+                if single_flag:
+                    sort_results.append(manga_metadata)
 
-    content = res.text
-    status_code = res.status_code
+        sort_results.sort(key=lambda x: BangumiApi.compute_name_distance(
+            x["name"], x.get("name_cn", ""), x['infobox'], query))
 
-    if(status_code != 200):
-        print("Status code was " + str(status_code) + ", so skipping...")
-        if(status_code == 403):
-            print(content)
-        if(status_code == 404):
-            print("try login")
-        return ""
+        return sort_results
 
-    return content
+    def get_subject_metadata(self, subject_id):
+        '''
+        获取漫画元数据
+        '''
+        url = f"{self.BASE_URL}/v0/subjects/{subject_id}"
+        response = requests.get(url, headers=self._get_headers())
+        if response.status_code != 200:
+            raise Exception("Get subject metadata request failed")
+        return response.json()
 
+    def get_related_subjects(self, subject_id):
+        '''
+        获取漫画的关联条目
+        '''
+        url = f"{self.BASE_URL}/v0/subjects/{subject_id}/subjects"
+        response = requests.get(url, headers=self._get_headers())
+        if response.status_code != 200:
+            raise Exception("Get related subjects request failed")
+        return response.json()
 
-def getSubjectRelations(id):
-    '''
-    获取漫画的关联条目
-    '''
-    url = "https://api.bgm.tv/v0/subjects/" + str(id)+"/subjects"
-    res = requests.get(url=url, headers=headers)
-
-    content = res.text
-    status_code = res.status_code
-
-    if(status_code != 200):
-        print("Status code was " + str(status_code) + ", so skipping...")
-        if(status_code == 403):
-            print(content)
-        if(status_code == 404):
-            print("try login")
-        return ""
-
-    return content
+    def update_reading_progress(self, subject_id, progress):
+        '''
+        更新漫画系列卷阅读进度
+        '''
+        url = f"{self.BASE_URL}/v0/users/-/collections/{subject_id}"
+        payload = {
+            "vol_status": progress
+        }
+        response = requests.patch(
+            url, headers=self._get_headers(), json=payload)
+        return response.status_code == 204

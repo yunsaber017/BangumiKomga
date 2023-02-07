@@ -3,16 +3,85 @@
 # Description: Komga API(https://github.com/gotson/komga/blob/master/komga/docs/openapi.json)
 # ------------------------------------------------------------------
 
+
 import requests
-import json
-from config import *
+
+
+class KomgaApi:
+    def __init__(self, base_url, username, password):
+        # store the base URL and authentication information for use in other methods
+        self.base_url = base_url + '/api/v1'
+        self.auth = (username, password)
+
+    def get_all_series(self):
+        '''
+        Retrieves all series in the komga comic.
+
+        https://github.com/gotson/komga/blob/master/komga/docs/openapi.json#L4859
+        '''
+        # make a GET request to the URL to retrieve all series
+        response = requests.get(
+            f'{self.base_url}/series?size=50000', auth=self.auth)
+        # return the response as a JSON object
+        return response.json()
+
+    def get_series_with_libaryid(self, library_id):
+        '''
+        Retrieves all series in a specified library in the komga comic.
+        '''
+        response = requests.get(
+            f'{self.base_url}/libraries/{library_id}/series')
+        return response.json()
+
+    def get_series_with_status(self, status):
+        '''
+        Retrieves all series with a specified status in the komga comic.
+
+        Status options: "ENDED", "ONGOING", "ABANDONED", "HIATUS"
+        '''
+        response = requests.get(f'{self.base_url}/series?status={status}')
+        return response.json()
+
+    def get_series_books(self, series_id):
+        '''
+        Retrieves all books in a specified series in the komga comic.
+
+        https://github.com/gotson/komga/blob/master/komga/docs/openapi.json#L5373
+        '''
+        # make a GET request to the URL to retrieve all books in a given series
+        response = requests.get(
+            f'{self.base_url}/series/{series_id}/books?size=50000', auth=self.auth)
+        # return the response as a JSON object
+        return response.json()
+
+    def update_series_metadata(self, series_id, metadata):
+        '''
+        Updates the metadata of a specified comic series.
+        '''
+        # make a PATCH request to the URL to update the metadata for a given series
+        response = requests.patch(
+            f'{self.base_url}/series/{series_id}/metadata', auth=self.auth, json=metadata)
+        # return True if the status code indicates success, False otherwise
+        return response.status_code == 204
+
+    def update_book_metadata(self, book_id, metadata):
+        '''
+        Updates the metadata of a specified comic book.
+
+        https://github.com/gotson/komga/blob/master/komga/docs/openapi.json#L2935
+        '''
+        # make a PATCH request to the URL to update the metadata for a given book
+        response = requests.patch(
+            f'{self.base_url}/books/{book_id}/metadata', auth=self.auth, json=metadata)
+        # return True if the status code indicates success, False otherwise
+        return response.status_code == 204
 
 
 class seriesMetadata:
     '''
-    漫画系列元数据字段
+    Class to represent Komga series metadata fields. 
 
-    https://github.com/gotson/komga/blob/master/komga/docs/openapi.json#L10449
+    See https://github.com/gotson/komga/blob/master/komga/docs/openapi.json#L10449 for fields. 
     '''
 
     def __init__(self):
@@ -33,7 +102,7 @@ class seriesMetadata:
 
 class bookMetadata:
     '''
-    漫画单册元数据字段
+    Class to represent Komga book metadata fields.
     '''
 
     def __init__(self):
@@ -48,105 +117,3 @@ class bookMetadata:
         self.numberSort = 0  # 短序号
 
         self.isvalid = False
-
-
-def emptyMetadata():
-    '''
-    清空旧元数据
-    '''
-    return seriesMetadata()
-
-
-def getKomangaSeries(parameter=None):
-    '''
-    获取komga中所有漫画系列
-
-    https://github.com/gotson/komga/blob/master/komga/docs/openapi.json#L4859
-    '''
-    parameters = '?size=50000'
-    if parameter != None:
-        parameters = parameters+'&'+parameter
-
-    x = requests.get(komgaurl + '/api/v1/series'+parameters,
-                     auth=(komgaemail, komgapassword))
-    return json.loads(x.text)
-
-
-def getKomangaSeriesWithLibraryID(libraryID):
-    '''
-    获取komga指定库中所有漫画系列
-    '''
-    return getKomangaSeries("library_id="+libraryID)
-
-
-def getKomangaSeriesWithStatus(status):
-    '''
-    获取komga指定状态下所有漫画系列
-
-    "enum": [
-                  "ENDED",
-                  "ONGOING",
-                  "ABANDONED",
-                  "HIATUS"
-                ]
-    '''
-    return getKomangaSeries("status="+status)
-
-
-def updateKomangaSeriesMetadata(seriesID, jsondata):
-    '''
-    更新漫画系列元数据
-    '''
-    headers = {'Content-Type': 'application/json', 'accept': '*/*'}
-    patch = requests.patch(komgaurl + "/api/v1/series/" + seriesID + "/metadata",
-                           data=str.encode(jsondata), auth=(komgaemail, komgapassword), headers=headers)
-    return patch
-
-
-def getKomangaBooks(parameter=None):
-    '''
-    获取komga中所有漫画单册
-
-    https://github.com/gotson/komga/blob/master/komga/docs/openapi.json#L7231
-    '''
-    parameters = '?size=50000'
-    if parameter != None:
-        parameters = parameters+'&'+parameter
-
-    x = requests.get(komgaurl + '/api/v1/books'+parameters,
-                     auth=(komgaemail, komgapassword))
-    return json.loads(x.text)
-
-
-def getKomangaSeriesBooks(seriesID):
-    '''
-    获取komga中指定漫画系列下所有漫画单册
-
-    https://github.com/gotson/komga/blob/master/komga/docs/openapi.json#L5373
-    '''
-    x = requests.get(komgaurl + '/api/v1/series/' + seriesID + "/books?size=50000",
-                     auth=(komgaemail, komgapassword))
-    return json.loads(x.text)
-
-
-def getKomangaSeriesMetadata(seriesID):
-    '''
-    获取komga中指定漫画系列的元数据
-
-    https://github.com/gotson/komga/blob/master/komga/docs/openapi.json#L5373
-    '''
-    x = requests.get(komgaurl + '/api/v1/series/' + seriesID,
-                     auth=(komgaemail, komgapassword))
-    return json.loads(x.text)
-
-
-def updateKomangaBookMetadata(bookID, jsondata):
-    '''
-    更新漫画单册元数据
-
-    https://github.com/gotson/komga/blob/master/komga/docs/openapi.json#L2935
-    '''
-    headers = {'Content-Type': 'application/json', 'accept': '*/*'}
-    patch = requests.patch(komgaurl + "/api/v1/books/" + bookID + "/metadata",
-                           data=str.encode(jsondata), auth=(komgaemail, komgapassword), headers=headers)
-    return patch

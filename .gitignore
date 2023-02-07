@@ -1,7 +1,4 @@
 config.py
-failedBooks.txt
-failedSeries.txt
+recordsRefreshed.db
+refreshMetadata.log
 __pycache__/
-.idea/
-mangabooks.progress
-mangaseries.progress
