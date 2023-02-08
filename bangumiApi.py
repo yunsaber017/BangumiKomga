@@ -80,12 +80,12 @@ class BangumiApi:
         sort_results = []
         for result in results:
             manga_id = result['id']
-            manga_metadata = BangumiApi.get_subject_metadata(self, manga_id)
+            manga_metadata = self.get_subject_metadata(self, manga_id)
             # bangumi书籍类型包括：漫画、小说、画集、其他
             # 由于komga不支持小说文字的读取，这里直接忽略`小说`类型，避免返回错误结果
             if manga_metadata["platform"] != "小说":
                 single_flag = True
-                for relation in BangumiApi.get_related_subjects(self, manga_id):
+                for relation in self.get_related_subjects(self, manga_id):
                     # bangumi书籍系列包括：系列、单行本
                     # 此处需去除漫画系列的单行本，避免干扰
                     # bangumi数据中存在单行本与系列未建立联系的情况
@@ -95,7 +95,7 @@ class BangumiApi:
                 if single_flag:
                     sort_results.append(manga_metadata)
 
-        sort_results.sort(key=lambda x: BangumiApi.compute_name_distance(
+        sort_results.sort(key=lambda x: self.compute_name_distance(
             x["name"], x.get("name_cn", ""), x['infobox'], query))
 
         return sort_results

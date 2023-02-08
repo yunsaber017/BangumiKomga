@@ -1,12 +1,10 @@
 
 import re
 import sqlite3
-import komgaApi
-import bangumiApi
 from getTitle import get_title
 import processMetadata
-from config import *
 from time import strftime, localtime
+from env import *
 from log import logger
 
 
@@ -41,11 +39,11 @@ def refresh_metadata(force_refresh_list=[]):
     '''
     刷新书籍系列元数据
     '''
-    bgm = bangumiApi.BangumiApi(BANGUMI_ACCESS_TOKEN)
-    # Initialize the komga API and get all book series
-    komga = komgaApi.KomgaApi(
-        KOMGA_BASE_URL, KOMGA_EMAIL, KOMGA_EMAIL_PASSWORD)
-    all_series = komga.get_all_series()
+    env = InitEnv()
+
+    bgm = env.bgm
+    komga = env.komga
+    all_series = env.all_series
 
     # Create a connection to the sqlite database
     conn = sqlite3.connect("recordsRefreshed.db")
@@ -56,7 +54,7 @@ def refresh_metadata(force_refresh_list=[]):
         '''CREATE TABLE IF NOT EXISTS refreshed_books (book_id text primary key,subject_id text ,update_success BOOLEAN,book_name text,refresh_time text )''')
 
     # Loop through each book series
-    for series in all_series['content']:
+    for series in all_series:
         series_id = series['id']
         series_name = series['name']
 

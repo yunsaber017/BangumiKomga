@@ -13,33 +13,51 @@ class KomgaApi:
         self.base_url = base_url + '/api/v1'
         self.auth = (username, password)
 
-    def get_all_series(self):
+    def get_all_series(self, parameters=None):
         '''
         Retrieves all series in the komga comic.
 
         https://github.com/gotson/komga/blob/master/komga/docs/openapi.json#L4859
         '''
+        url = f'{self.base_url}/series'
+        if parameters:
+            url += f'?{parameters}&size=50000'
+        else:
+            url += '?size=50000'
         # make a GET request to the URL to retrieve all series
-        response = requests.get(
-            f'{self.base_url}/series?size=50000', auth=self.auth)
+        response = requests.get(url, auth=self.auth)
         # return the response as a JSON object
         return response.json()
 
     def get_series_with_libaryid(self, library_id):
         '''
         Retrieves all series in a specified library in the komga comic.
+
+        https://github.com/gotson/komga/blob/master/komga/docs/openapi.json#L4875
+        '''
+        return self.get_all_series(f'library_id={library_id}')
+
+    def get_series_with_collection(self, collection_id):
+        '''
+        Retrieves all series with a specified collection in the komga comic.
+        '''
+        return self.get_all_series(f'collection_id={collection_id}')
+
+    def get_series_with_read_status(self, read_status):
+        '''
+        Retrieves all series with a specified read status in the komga comic.
+
+        Status options: "UNREAD", "READ", "IN_PROGRESS"
+        '''
+        return self.get_all_series(f'read_status={read_status}')
+
+    def get_series_with_readlist(self, readlist_id):
+        '''
+        Retrieves all series with a specified readlist in the komga comic.
         '''
         response = requests.get(
-            f'{self.base_url}/libraries/{library_id}/series')
-        return response.json()
-
-    def get_series_with_status(self, status):
-        '''
-        Retrieves all series with a specified status in the komga comic.
-
-        Status options: "ENDED", "ONGOING", "ABANDONED", "HIATUS"
-        '''
-        response = requests.get(f'{self.base_url}/series?status={status}')
+            f'{self.base_url}/readlists/{readlist_id}', auth=self.auth)
+        # return the response as a JSON object
         return response.json()
 
     def get_series_books(self, series_id):

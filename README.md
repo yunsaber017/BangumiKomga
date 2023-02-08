@@ -38,9 +38,16 @@ This metadata then gets converted to be compatible to Komga and then gets sent t
 
     `BANGUMI_ACCESS_TOKEN` （选填）用于读取NSFW条目，在 https://next.bgm.tv/demo/access-token 创建个人令牌
 
-    `FORCE_REFRESH_LIST` 强制刷新的书籍系列，避免自动跳过。komga界面点击书籍系列（对应链接）即可获得，形如：`0B79XX3NP97K9`。建议搭配`cbl(Correct Bgm Link)`使用
-    
     `cbl(Correct Bgm Link)` 在系列元数据的链接中填入`cbl`和该漫画系列的bangumi地址即可，后续操作将基于此链接地址。建议搭配`FORCE_REFRESH_LIST`使用，从而修正元数据错误的书籍系列。也可以单独使用，为刷新失败的系列手动匹配
+
+    `FORCE_REFRESH_LIST` 强制刷新的书籍系列，避免自动跳过。komga界面点击书籍系列（对应链接）即可获得，形如：`'0B79XX3NP97K9'`。填写时以英文引号`''`包裹，英文逗号`,`分割。建议搭配`cbl(Correct Bgm Link)`使用
+
+    `KOMGA_LIBRARY_LIST` 处理指定库中的书籍系列。komga界面点击库（对应链接）即可获得，形如：`'0B79XX3NP97K9'`。填写时以英文引号`''`包裹，英文逗号`,`分割。与`KOMGA_COLLECTION_LIST`不能同时使用
+
+    `KOMGA_COLLECTION_LIST` 处理指定收藏中的书籍系列。komga界面点击收藏（对应链接）即可获得，形如：`'0B79XX3NP97K9'`。填写时以英文引号`''`包裹，英文逗号`,`分割。与`KOMGA_LIBRARY_LIST`不能同时使用
+
+        可以搭配`同步阅读进度`实现仅同步部分书籍系列的进度
+    
 
 
 3. Run the script using `python refreshMetadata.py` 注意：会自动跳过已处理的系列及书
@@ -63,7 +70,7 @@ _注意：当前仅为komga至bangumi单向同步_
 
     注意：
     - 如果配置了`FORCE_REFRESH_LIST`，则仅同步此列表配置的漫画系列进度
-    - 如果未配置`FORCE_REFRESH_LIST`，则同步komga**所有系列**的漫画进度。**为避免污染时间线，请谨慎操作**
+    - 如果未配置`FORCE_REFRESH_LIST`，则同步当前获取的**所有系列**的漫画进度。**为避免污染时间线，请谨慎操作**
 3. `python updateReadProgress.py`
 
 ## 命名建议
