@@ -66,6 +66,9 @@ This metadata then gets converted to be compatible to Komga and then gets sent t
 
 _注意：当前仅为komga至bangumi单向同步_
 
+**同步内容：**
+- 仅同步卷数，不同步话数
+
 1. 步骤同`刷新元数据`
 2. 步骤同`刷新元数据`
 
