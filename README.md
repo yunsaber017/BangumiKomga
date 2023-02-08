@@ -21,7 +21,7 @@ This metadata then gets converted to be compatible to Komga and then gets sent t
 
 ### TODO
 
-- [ ] 使用bangumi/Archive离线数据代替联网查询
+- [ ] 使用[bangumi/Archive](https://github.com/bangumi/Archive)离线数据代替联网查询
 - [ ] ~~添加同人志~~ 推荐使用[LANraragi](https://github.com/Difegue/LANraragi)
 
 ## Requirements
@@ -39,14 +39,19 @@ This metadata then gets converted to be compatible to Komga and then gets sent t
 
     `FORCE_REFRESH_LIST` 强制刷新的书籍系列，避免自动跳过。komga界面点击书籍系列（对应链接）即可获得，形如：`0B79XX3NP97K9`。建议搭配`cbl(Correct Bgm Link)`使用
     
-    `cbl(Correct Bgm Link)` 在系列元数据的链接中填入`cbl`和该漫画系列的bangumi地址即可，后续操作将基于此链接地址。建议搭配`FORCE_REFRESH_LIST`使用，从而修正元数据错误的书籍系列
+    `cbl(Correct Bgm Link)` 在系列元数据的链接中填入`cbl`和该漫画系列的bangumi地址即可，后续操作将基于此链接地址。建议搭配`FORCE_REFRESH_LIST`使用，从而修正元数据错误的书籍系列。也可以单独使用，为刷新失败的系列手动匹配
 
 
 3. Run the script using `python refreshMetadata.py` 注意：会自动跳过已处理的系列及书
 
 **Tips:**
 
-- 如果无需刷新已失败的系列，可自行将`upsert_series_record`中`0`修改为`1`
+如果无需刷新已失败的系列：
+- 可自行将`upsert_series_record`中`0`修改为`1`
+- 或者自行修改数据库
+
+
+如果漫画系列数量上千，请考虑使用[bangumi/Archive](https://github.com/bangumi/Archive)离线数据代替联网查询
 
 ## 同步阅读进度
 
@@ -83,6 +88,10 @@ _注意：当前仅为komga至bangumi单向同步_
 ```
 
 _命名建议修改自某喵_
+
+## Issues & Pull Requests
+
+欢迎提交新规则、问题、功能……
 
 ## 致谢
 

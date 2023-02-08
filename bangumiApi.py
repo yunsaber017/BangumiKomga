@@ -6,8 +6,9 @@
 
 import requests
 from Levenshtein import distance
-from zhconv import convert
 from log import logger
+from zhconv import convert
+from urllib.parse import quote_plus
 
 
 class BangumiApi:
@@ -54,8 +55,10 @@ class BangumiApi:
         '''
         获取搜索结果，并移除非漫画系列。返回具有完整元数据的条目
         '''
-        query = convert(query, 'zh-cn')
-        url = f"{self.BASE_URL}/search/subject/{query}?responseGroup=large&type=1&max_results=25"
+        # query = convert(query, 'zh-cn'))
+        query = quote_plus(query)
+        url = f"{self.BASE_URL}/search/subject/{query}?responseGroup=small&type=1&max_results=25"
+        # TODO 处理'citrus+ ~柑橘味香气plus~'
         response = requests.get(url, headers=self._get_headers())
         if response.status_code != 200:
             raise Exception("Search subjects request failed")

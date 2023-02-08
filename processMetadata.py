@@ -110,7 +110,14 @@ def __setPublisher(komga_metadata, bangumi_metadata):
     '''
     for info in bangumi_metadata["infobox"]:
         if info["key"] == "出版社":
-            komga_metadata.publisher = info["value"]
+            if isinstance(info["value"], (list,)):  # 判断传入值是否为列表
+                # 只取第一个出版商
+                for alias in info["value"]:
+                    komga_metadata.publisher = alias["v"]
+                    return
+            else:
+                komga_metadata.publisher = info["value"]
+                return
 
 
 def __setAgeRating(komga_metadata, bangumi_metadata):

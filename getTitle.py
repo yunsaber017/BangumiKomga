@@ -34,8 +34,18 @@ def remove_punctuation(input_string):
     '''
     Remove punctuation from a string
     '''
-    # Use a regular expression to remove all non-word and non-whitespace characters
-    return re.sub(r'[^\w\s]', '', input_string)
+    # Use a regular expression to remove non-word and non-whitespace characters
+    return re.sub(r'^[^\w\s]+|[^\w\s]+$', '', input_string)
+
+
+def check_string_with_x(s):
+    '''
+    e.g. [TYPE-MOONxタスクオーナ]
+    '''
+    # 匹配字符串中的所有字母x（包括大小写），且前后不为字母数字
+    pattern = r'(?<![a-zA-Z0-9])x(?![a-zA-Z0-9])'
+    # 使用re库的search函数匹配字符串，如果有匹配到的字符，返回True；否则返回False
+    return bool(re.search(pattern, s))
 
 
 def check_word(word, corpus, vocabulary):
@@ -48,6 +58,8 @@ def check_word(word, corpus, vocabulary):
     # Check if the word is in the corpus or if its simplified Chinese equivalent is in the corpus
     elif word in corpus or convert(word, 'zh-cn') in corpus:
         return "人名"
+    elif check_string_with_x(word):
+        return "复合人名"
     # Return None if the word is not in either the corpus or vocabulary
     else:
         return None
@@ -65,7 +77,7 @@ def get_title(title):
     # Iterate through the words in the title
     for word in split_words(title):
         # convert to lowercase
-        word = word.lower()
+        word = remove_punctuation(word).lower()
         # Check the word against the corpus and vocabulary
         result = check_word(word, corpus, vocabulary)
         # Return the word if it is not in the corpus or vocabulary
