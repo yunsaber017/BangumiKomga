@@ -116,6 +116,7 @@ def __setPublisher(komga_metadata, bangumi_metadata):
                     komga_metadata.publisher = alias["v"]
                     return
             else:
+                # TODO 分割出版社：'集英社、東立出版社、新星出版社'
                 komga_metadata.publisher = info["value"]
                 return
 

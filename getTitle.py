@@ -70,8 +70,8 @@ def get_title(title):
     Get the first word from a title that is not in the corpus or vocabulary
     '''
     # Load the corpus and vocabulary
-    corpus = read_corpus("Japanese_Names_Corpus（18W）.txt") + \
-        read_corpus("bangumi_person.txt")
+    corpus = read_corpus("corpus/Japanese_Names_Corpus（18W）.txt") + \
+        read_corpus("corpus/bangumi_person.txt")
     vocabulary = build_vocabulary(
         ["comic", "comics", "artbook", "artbooks", "汉化", "全彩版", "青文"])
     # Iterate through the words in the title
