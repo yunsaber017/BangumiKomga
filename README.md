@@ -16,9 +16,10 @@ This metadata then gets converted to be compatible to Komga and then gets sent t
 - [x] 漫画系列添加元数据
 - [x] 单册漫画添加元数据
 - [x] 自动跳过已刷新元数据的条目
-- [x] 优先使用漫画系列配置的bangumi链接
+- [x] 优先使用手动配置的bangumi链接(cbl)
 - [x] 配置Bangumi登录
 - [x] 同步观看进度至Bangumi
+- [x] 可选择处理范围：①所有书籍系列；②指定库的书籍系列；③指定收藏的书籍系列
 
 ### TODO
 
@@ -38,7 +39,7 @@ This metadata then gets converted to be compatible to Komga and then gets sent t
 
     `BANGUMI_ACCESS_TOKEN` （选填）用于读取NSFW条目，在 https://next.bgm.tv/demo/access-token 创建个人令牌
 
-    `cbl(Correct Bgm Link)` 在系列元数据的链接中填入`cbl`和该漫画系列的bangumi地址即可，后续操作将基于此链接地址。建议搭配`FORCE_REFRESH_LIST`使用，从而修正元数据错误的书籍系列。也可以单独使用，为刷新失败的系列手动匹配
+    `cbl(Correct Bgm Link)` 在系列元数据的链接中填入`cbl`和该漫画系列的bangumi地址即可。未刷新或强制刷新的漫画系列将优先使用此链接。建议搭配`FORCE_REFRESH_LIST`使用，从而修正元数据错误的书籍系列。也可以单独使用，为刷新失败的系列手动匹配
 
     `FORCE_REFRESH_LIST` 强制刷新的书籍系列，避免自动跳过。komga界面点击书籍系列（对应链接）即可获得，形如：`'0B79XX3NP97K9'`。填写时以英文引号`''`包裹，英文逗号`,`分割。建议搭配`cbl(Correct Bgm Link)`使用
 
