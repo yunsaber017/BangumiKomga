@@ -153,6 +153,7 @@ def refresh_book_metadata(bgm, komga, subject_id, series_id, conn, force_refresh
         subject_id) if subject['relation'] == "单行本"]
 
     # Get the number for each related subject by finding the last number in the name or name_cn field
+    # TODO 数字匹配，包括：I、一、1、①
     subjects_numbers = []
     for subject in related_subjects:
         numbers = re.findall(r"\d+", subject['name'] + subject['name_cn'])

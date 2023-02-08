@@ -35,7 +35,7 @@ This metadata then gets converted to be compatible to Komga and then gets sent t
 1. Install the requirements using `pip install -r requirements.txt`
 2. Rename `config.template.py` to `config.py` and edit the url, email and password to match the ones of your komga instance (User needs to have permission to edit the metadata).
 
-    `BANGUMI_ACCESS_TOKEN` 用于读取NSFW条目，在https://next.bgm.tv/demo/access-token创建个人令牌
+    `BANGUMI_ACCESS_TOKEN` 用于读取NSFW条目，在 https://next.bgm.tv/demo/access-token 创建个人令牌
 
     `FORCE_REFRESH_LIST` 强制刷新的书籍系列，避免自动跳过。komga界面点击书籍系列（对应链接）即可获得，形如：`0B79XX3NP97K9`。建议搭配`cbl(Correct Bgm Link)`使用
     
