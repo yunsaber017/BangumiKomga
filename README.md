@@ -20,14 +20,14 @@ This metadata then gets converted to be compatible to Komga and then gets sent t
 - [x] 配置Bangumi登录
 - [x] 同步观看进度至Bangumi
 - [x] 可选择处理范围：①所有书籍系列；②指定库的书籍系列；③指定收藏的书籍系列
+- [x] ~~区分单册和单话~~👉未匹配的书也会重新排序
+- [x] ~~添加同人志~~👉推荐使用[LANraragi](https://github.com/Difegue/LANraragi)
 
 处理逻辑见[DESIGN](DESIGN.md)
 
 ### TODO
 
 - [ ] 使用[bangumi/Archive](https://github.com/bangumi/Archive)离线数据代替联网查询
-- [ ] 区分单册和单话
-- [ ] ~~添加同人志~~ 推荐使用[LANraragi](https://github.com/Difegue/LANraragi)
 
 ## Requirements
 
