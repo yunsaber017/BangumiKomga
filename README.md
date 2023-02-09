@@ -26,6 +26,7 @@ This metadata then gets converted to be compatible to Komga and then gets sent t
 ### TODO
 
 - [ ] 使用[bangumi/Archive](https://github.com/bangumi/Archive)离线数据代替联网查询
+- [ ] 区分单册和单话
 - [ ] ~~添加同人志~~ 推荐使用[LANraragi](https://github.com/Difegue/LANraragi)
 
 ## Requirements
