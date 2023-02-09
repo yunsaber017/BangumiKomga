@@ -69,12 +69,15 @@ This metadata then gets converted to be compatible to Komga and then gets sent t
 
 _注意：当前仅为komga至bangumi单向同步_
 
+**同步内容：**
+- 仅同步卷数，不同步话数
+
 1. 步骤同`刷新元数据`
 2. 步骤同`刷新元数据`
 
     注意：
     - 如果配置了`FORCE_REFRESH_LIST`，则仅同步此列表配置的漫画系列进度
-    - 如果未配置`FORCE_REFRESH_LIST`，则同步当前获取的**所有系列**的漫画进度。**为避免污染时间线，请谨慎操作**
+    - 如果未配置`FORCE_REFRESH_LIST`，则同步当前获取的**所有系列**的漫画进度（当前有3种范围：所有、仅指定库、仅指定收藏）。**为避免污染时间线，请谨慎操作**
 3. `python updateReadProgress.py`
 
 ## 命名建议
