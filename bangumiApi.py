@@ -31,7 +31,7 @@ class BangumiApi:
         # https://next.bgm.tv/demo/access-token
         return
 
-    def compute_name_distance(name, name_cn, infobox, target):
+    def compute_name_distance(self, name, name_cn, infobox, target):
         """
         Computes the Levenshtein distance between name, name_cn, and infobox "别名" (if exists) and the target string.
 
@@ -80,12 +80,12 @@ class BangumiApi:
         sort_results = []
         for result in results:
             manga_id = result['id']
-            manga_metadata = self.get_subject_metadata(self, manga_id)
+            manga_metadata = self.get_subject_metadata(manga_id)
             # bangumi书籍类型包括：漫画、小说、画集、其他
             # 由于komga不支持小说文字的读取，这里直接忽略`小说`类型，避免返回错误结果
             if manga_metadata["platform"] != "小说":
                 single_flag = True
-                for relation in self.get_related_subjects(self, manga_id):
+                for relation in self.get_related_subjects(manga_id):
                     # bangumi书籍系列包括：系列、单行本
                     # 此处需去除漫画系列的单行本，避免干扰
                     # bangumi数据中存在单行本与系列未建立联系的情况
