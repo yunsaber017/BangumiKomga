@@ -174,9 +174,11 @@ def refresh_book_metadata(bgm, komga, subject_id, series_id, conn, force_refresh
             book_number = int(re.findall(r"\d+", book_name)[-1])
         except:
             book_number = 1
+        ep_flag = True
         # Update the metadata for the book if its number matches a related subject number
         for i, number in enumerate(subjects_numbers):
             if book_number == number:
+                ep_flag = False
                 # Get the metadata for the book from bangumi
                 book_metadata = processMetadata.setKomangaBookMetadata(
                     related_subjects[i]['id'], number, book_name, bgm)
@@ -210,6 +212,14 @@ def refresh_book_metadata(bgm, komga, subject_id, series_id, conn, force_refresh
                     upsert_book_record(
                         conn, book_id, related_subjects[i]['id'], 0, book_name)
                 break
+        # 修正`话`序号
+        if ep_flag:
+            book_data = {
+                "number": book_number,
+                "numberSort": book_number
+            }
+            komga.update_book_metadata(
+                book_id, book_data)
 
 
 refresh_metadata(FORCE_REFRESH_LIST)
