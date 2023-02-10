@@ -140,16 +140,18 @@ def refresh_metadata(force_refresh_list=[]):
                               series_id, conn, force_refresh_flag)
 
 
-def getNumber(string):
+def getNumber(s):
     # TODO 数字匹配，包括：I、一、1、①
     # Define the pattern to match decimal numbers in the format of "xx.xx"
     pattern = r"\d+\.\d"
+    # e.g. 16-5
+    s = s.replace('-', '.').replace('_', '.')
     # Use the `re.findall` function to search for all occurrences of the pattern in the input string
-    numbers = re.findall(pattern, string)
+    numbers = re.findall(pattern, s)
     # If no decimal numbers are found, change the pattern to match integer numbers
     if not numbers:
         pattern = r"\d+"
-        numbers = re.findall(pattern, string)
+        numbers = re.findall(pattern, s)
 
     # Return the list of found numbers
     return numbers
