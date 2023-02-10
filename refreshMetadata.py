@@ -140,6 +140,21 @@ def refresh_metadata(force_refresh_list=[]):
                               series_id, conn, force_refresh_flag)
 
 
+def getNumber(string):
+    # TODO 数字匹配，包括：I、一、1、①
+    # Define the pattern to match decimal numbers in the format of "xx.xx"
+    pattern = r"\d+\.\d"
+    # Use the `re.findall` function to search for all occurrences of the pattern in the input string
+    numbers = re.findall(pattern, string)
+    # If no decimal numbers are found, change the pattern to match integer numbers
+    if not numbers:
+        pattern = r"\d+"
+        numbers = re.findall(pattern, string)
+
+    # Return the list of found numbers
+    return numbers
+
+
 def refresh_book_metadata(bgm, komga, subject_id, series_id, conn, force_refresh_flag):
     '''
     刷新书元数据
@@ -151,11 +166,14 @@ def refresh_book_metadata(bgm, komga, subject_id, series_id, conn, force_refresh
         subject_id) if subject['relation'] == "单行本"]
 
     # Get the number for each related subject by finding the last number in the name or name_cn field
-    # TODO 数字匹配，包括：I、一、1、①
     subjects_numbers = []
     for subject in related_subjects:
-        numbers = re.findall(r"\d+", subject['name'] + subject['name_cn'])
-        subjects_numbers.append(int(numbers[-1]) if numbers else 1)
+        numbers = getNumber(subject['name'] + subject['name_cn'])
+        try:
+            subjects_numbers.append(
+                float(numbers[-1]) if numbers else float(1))
+        except ValueError:
+            logger.warning("Failed to extract number ")
 
     # Get all books in the series on komga
     books = komga.get_series_books(series_id)
@@ -171,9 +189,9 @@ def refresh_book_metadata(bgm, komga, subject_id, series_id, conn, force_refresh
 
         # get nunmber from book name
         try:
-            book_number = int(re.findall(r"\d+", book_name)[-1])
+            book_number = float(getNumber(book_name)[-1])
         except:
-            book_number = 1
+            book_number = float(1)
         ep_flag = True
         # Update the metadata for the book if its number matches a related subject number
         for i, number in enumerate(subjects_numbers):
