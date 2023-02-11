@@ -26,7 +26,7 @@ def split_words(string):
     e.g. [ツガノガク] [涼宮春日的憂鬱] [台灣角川] [1-20完] -> ['ツガノガク', '涼宮春日的憂鬱', '台灣角川', '1-20完']
     '''
     # Use a regular expression to find all non-empty substrings between square brackets and parentheses
-    return [word.strip() for word in re.findall(r"[^\[\]\&\(\)×（）]+", string)
+    return [word.strip() for word in re.findall(r"[^\[\]\(\)（）]+", string)
             if word.strip() and not re.match(r'^[^\w]+$', word.strip())]
 
 
@@ -40,12 +40,20 @@ def remove_punctuation(input_string):
 
 def check_string_with_x(s):
     '''
-    e.g. [TYPE-MOONxタスクオーナ]
+    e.g. [大暮維人×西尾維新]
     '''
     # 匹配字符串中的所有字母x（包括大小写），且前后不为字母数字
     pattern = r'(?<![a-zA-Z0-9])x(?![a-zA-Z0-9])'
     # 使用re库的search函数匹配字符串，如果有匹配到的字符，返回True；否则返回False
-    return bool(re.search(pattern, s))
+    if bool(re.search(pattern, s)):
+        return True
+    elif bool(re.search(r"×", s)):
+        return True
+    # 待验证：是否多数漫画包含&
+    elif bool(re.search(r"\&", s)):
+        return True
+    else:
+        return False
 
 
 def check_word(word, corpus, vocabulary):
@@ -59,7 +67,7 @@ def check_word(word, corpus, vocabulary):
     elif word in corpus or convert(word, 'zh-cn') in corpus:
         return "人名"
     elif check_string_with_x(word):
-        return "复合人名"
+        return "多人名"
     # Return None if the word is not in either the corpus or vocabulary
     else:
         return None
