@@ -163,19 +163,9 @@ def refresh_book_metadata(bgm, komga, subject_id, series_id, conn, force_refresh
     '''
     if subject_id == None:
         return
-    # Get the related subjects for the series from bangumi
-    related_subjects = [subject for subject in bgm.get_related_subjects(
-        subject_id) if subject['relation'] == "单行本"]
 
-    # Get the number for each related subject by finding the last number in the name or name_cn field
+    related_subjects = []
     subjects_numbers = []
-    for subject in related_subjects:
-        numbers = getNumber(subject['name'] + subject['name_cn'])
-        try:
-            subjects_numbers.append(
-                float(numbers[-1]) if numbers else float(1))
-        except ValueError:
-            logger.warning("Failed to extract number ")
 
     # Get all books in the series on komga
     books = komga.get_series_books(series_id)
@@ -188,6 +178,21 @@ def refresh_book_metadata(bgm, komga, subject_id, series_id, conn, force_refresh
         c = conn.cursor()
         if c.execute("SELECT * FROM refreshed_books WHERE book_id=? AND update_success=1", (book_id,)).fetchone() and not force_refresh_flag:
             continue
+
+        if not related_subjects:
+            # Get the related subjects for the series from bangumi
+            related_subjects = [subject for subject in bgm.get_related_subjects(
+                subject_id) if subject['relation'] == "单行本"]
+
+            # Get the number for each related subject by finding the last number in the name or name_cn field
+            subjects_numbers = []
+            for subject in related_subjects:
+                numbers = getNumber(subject['name'] + subject['name_cn'])
+                try:
+                    subjects_numbers.append(
+                        float(numbers[-1]) if numbers else float(1))
+                except ValueError:
+                    logger.warning("Failed to extract number ")
 
         # get nunmber from book name
         try:

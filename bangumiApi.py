@@ -67,7 +67,7 @@ class BangumiApi:
             response_json = response.json()
         except ValueError as e:
             # bangumi无结果但返回正常
-            logger.exception(e)
+            # logger.exception(e)
             return []
         else:
             # e.g. 川瀬绫 -> {"results":1,"list":null}
