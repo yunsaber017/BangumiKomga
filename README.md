@@ -37,7 +37,12 @@ This metadata then gets converted to be compatible to Komga and then gets sent t
 
 ## 刷新元数据
 
-1. Install the requirements using `pip install -r requirements.txt`
+1. Install the requirements using
+    ```shell
+    conda install --file env_conda.txt
+
+    pip install -r env_pip.txt
+    ```
 2. Rename `config.template.py` to `config.py` and edit the url, email and password to match the ones of your komga instance (User needs to have permission to edit the metadata).
 
     `BANGUMI_ACCESS_TOKEN` （选填）用于读取NSFW条目，在 https://next.bgm.tv/demo/access-token 创建个人令牌
