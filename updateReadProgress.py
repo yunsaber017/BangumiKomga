@@ -33,10 +33,10 @@ def update_read_progress(force_refresh_list=[]):
         # TODO 添加是否同步判断逻辑，比如：是否`在读`
         if bgm.update_reading_progress(subject_id, books_read_count):
             logger.info("Successfully update: "+series_name +
-                        " series read progress: "+books_read_count)
+                        " series read progress: "+str(books_read_count))
         else:
             logger.error("Failed to update: "+series_name +
-                         " series read progress: "+books_read_count)
+                         " series read progress: "+str(books_read_count))
 
 
 update_read_progress(FORCE_REFRESH_LIST)
