@@ -85,6 +85,10 @@ _注意：当前仅为komga至bangumi单向同步_
     - 如果未配置`FORCE_REFRESH_LIST`，则同步当前获取的**所有系列**的漫画进度（当前有3种范围：所有、仅指定库、仅指定收藏）。**为避免污染时间线，请谨慎操作**
 3. `python updateReadProgress.py`
 
+**Tips:**
+
+推荐使用Tachiyomi更新阅读进度👉[Tracking | Tachiyomi](https://tachiyomi.org/help/guides/tracking/#what-is-tracking)
+
 ## 命名建议
 
 `[漫画名称][作者][出版社][卷数][其他1][其他2]`
