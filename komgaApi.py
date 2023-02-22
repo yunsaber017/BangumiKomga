@@ -5,6 +5,7 @@
 
 
 import requests
+from log import logger
 
 
 class KomgaApi:
@@ -24,8 +25,13 @@ class KomgaApi:
             url += f'?{parameters}&size=50000'
         else:
             url += '?size=50000'
-        # make a GET request to the URL to retrieve all series
-        response = requests.get(url, auth=self.auth)
+        try:
+            # make a GET request to the URL to retrieve all series
+            response = requests.get(url, auth=self.auth)
+            response.raise_for_status()
+        except requests.exceptions.RequestException as e:
+            logger.error(f"An error occurred: {e}")
+            return []
         # return the response as a JSON object
         return response.json()
 
@@ -55,8 +61,13 @@ class KomgaApi:
         '''
         Retrieves all series with a specified readlist in the komga comic.
         '''
-        response = requests.get(
-            f'{self.base_url}/readlists/{readlist_id}', auth=self.auth)
+        try:
+            response = requests.get(
+                f'{self.base_url}/readlists/{readlist_id}', auth=self.auth)
+            response.raise_for_status()
+        except requests.exceptions.RequestException as e:
+            logger.error(f"An error occurred: {e}")
+            return []
         # return the response as a JSON object
         return response.json()
 
@@ -66,9 +77,14 @@ class KomgaApi:
 
         https://github.com/gotson/komga/blob/master/komga/docs/openapi.json#L5373
         '''
-        # make a GET request to the URL to retrieve all books in a given series
-        response = requests.get(
-            f'{self.base_url}/series/{series_id}/books?size=50000', auth=self.auth)
+        try:
+            # make a GET request to the URL to retrieve all books in a given series
+            response = requests.get(
+                f'{self.base_url}/series/{series_id}/books?size=50000', auth=self.auth)
+            response.raise_for_status()
+        except requests.exceptions.RequestException as e:
+            logger.error(f"An error occurred: {e}")
+            return []
         # return the response as a JSON object
         return response.json()
 
@@ -76,9 +92,13 @@ class KomgaApi:
         '''
         Updates the metadata of a specified comic series.
         '''
-        # make a PATCH request to the URL to update the metadata for a given series
-        response = requests.patch(
-            f'{self.base_url}/series/{series_id}/metadata', auth=self.auth, json=metadata)
+        try:
+            # make a PATCH request to the URL to update the metadata for a given series
+            response = requests.patch(
+                f'{self.base_url}/series/{series_id}/metadata', auth=self.auth, json=metadata)
+            response.raise_for_status()
+        except requests.exceptions.RequestException as e:
+            logger.error(f"An error occurred: {e}")
         # return True if the status code indicates success, False otherwise
         return response.status_code == 204
 
@@ -88,9 +108,13 @@ class KomgaApi:
 
         https://github.com/gotson/komga/blob/master/komga/docs/openapi.json#L2935
         '''
-        # make a PATCH request to the URL to update the metadata for a given book
-        response = requests.patch(
-            f'{self.base_url}/books/{book_id}/metadata', auth=self.auth, json=metadata)
+        try:
+            # make a PATCH request to the URL to update the metadata for a given book
+            response = requests.patch(
+                f'{self.base_url}/books/{book_id}/metadata', auth=self.auth, json=metadata)
+            response.raise_for_status()
+        except requests.exceptions.RequestException as e:
+            logger.error(f"An error occurred: {e}")
         # return True if the status code indicates success, False otherwise
         return response.status_code == 204
 

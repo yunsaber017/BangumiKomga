@@ -58,16 +58,19 @@ class BangumiApi:
         # query = convert(query, 'zh-cn'))
         url = f"{self.BASE_URL}/search/subject/{quote_plus(query)}?responseGroup=small&type=1&max_results=25"
         # TODO 处理'citrus+ ~柑橘味香气plus~'
-        response = requests.get(url, headers=self._get_headers())
-        if response.status_code != 200:
-            raise Exception("Search subjects request failed")
+        try:
+            response = requests.get(url, headers=self._get_headers())
+            response.raise_for_status()
+        except requests.exceptions.RequestException as e:
+            logger.error(f"An error occurred: {e}")
+            return []
 
         # e.g. Artbooks.VOL.14 -> {"request":"\/search\/subject\/Artbooks.VOL.14?responseGroup=large&type=1","code":404,"error":"Not Found"}
         try:
             response_json = response.json()
         except ValueError as e:
             # bangumi无结果但返回正常
-            # logger.exception(e)
+            # logger.error(f"An error occurred: {e}")
             return []
         else:
             # e.g. 川瀬绫 -> {"results":1,"list":null}
@@ -105,9 +108,12 @@ class BangumiApi:
         获取漫画元数据
         '''
         url = f"{self.BASE_URL}/v0/subjects/{subject_id}"
-        response = requests.get(url, headers=self._get_headers())
-        if response.status_code != 200:
-            raise Exception("Get subject metadata request failed")
+        try:
+            response = requests.get(url, headers=self._get_headers())
+            response.raise_for_status()
+        except requests.exceptions.RequestException as e:
+            logger.error(f"An error occurred: {e}")
+            return []
         return response.json()
 
     def get_related_subjects(self, subject_id):
@@ -115,9 +121,12 @@ class BangumiApi:
         获取漫画的关联条目
         '''
         url = f"{self.BASE_URL}/v0/subjects/{subject_id}/subjects"
-        response = requests.get(url, headers=self._get_headers())
-        if response.status_code != 200:
-            raise Exception("Get related subjects request failed")
+        try:
+            response = requests.get(url, headers=self._get_headers())
+            response.raise_for_status()
+        except requests.exceptions.RequestException as e:
+            logger.error(f"An error occurred: {e}")
+            return []
         return response.json()
 
     def update_reading_progress(self, subject_id, progress):
@@ -128,6 +137,10 @@ class BangumiApi:
         payload = {
             "vol_status": progress
         }
-        response = requests.patch(
-            url, headers=self._get_headers(), json=payload)
+        try:
+            response = requests.patch(
+                url, headers=self._get_headers(), json=payload)
+            response.raise_for_status()
+        except requests.exceptions.RequestException as e:
+            logger.error(f"An error occurred: {e}")
         return response.status_code == 204

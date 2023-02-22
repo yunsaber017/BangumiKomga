@@ -138,6 +138,7 @@ def refresh_metadata(force_refresh_list=[]):
 
         refresh_book_metadata(bgm, komga, subject_id,
                               series_id, conn, force_refresh_flag)
+    logger.info("Finish!")
 
 
 def getNumber(s):
