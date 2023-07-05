@@ -4,7 +4,7 @@
 # ------------------------------------------------------------------
 
 
-from komgaApi import *
+from api.komgaApi import *
 
 
 def __setTags(komga_metadata, bangumi_metadata):
@@ -232,6 +232,9 @@ def setKomangaBookMetadata(subject_id, number, name, bgm):
     komangaBookMetadata.title = name
 
     bangumiMetadata = bgm.get_subject_metadata(subject_id)
+    if not bangumiMetadata:
+        return komangaBookMetadata
+        
     subjectRelations = bgm.get_related_subjects(subject_id)
     # link
     __setLinks(komangaBookMetadata, bangumiMetadata,

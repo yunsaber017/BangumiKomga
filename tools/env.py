@@ -1,7 +1,7 @@
-import komgaApi
-import bangumiApi
-from config import *
-from log import logger
+import api.komgaApi as komgaApi
+import api.bangumiApi as bangumiApi
+from config.config import *
+from tools.log import logger
 
 
 class InitEnv:
