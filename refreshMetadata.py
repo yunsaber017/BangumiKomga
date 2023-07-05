@@ -1,38 +1,12 @@
 
 import re
-import sqlite3
-from getTitle import get_title
+from tools.getTitle import get_title
 import processMetadata
 from time import strftime, localtime
-from env import *
-from log import logger
-
-
-def upsert_series_record(conn, series_id, subject_id, update_success, series_name, bangumi_name):
-    """
-    插入或更新数据记录
-    :param conn: 数据库连接
-    :param table: 表名
-    :param series_id: komga id
-    :param subject_id: bangumi id
-    :param update_success: 更新是否成功
-    :param series_name: komga名称
-    :param refresh_time: 刷新时间
-    :param bangumi_name: bangumi名称
-    """
-    c = conn.cursor()
-    # 0 (false) and 1 (true)
-    c.execute("INSERT OR REPLACE INTO refreshed_series (series_id,subject_id,update_success,series_name,bangumi_name,refresh_time) VALUES (?,?,?,?,?,?)",
-              (series_id, subject_id, update_success, series_name, bangumi_name, strftime('%Y-%m-%d %H:%M:%S', localtime()),))
-    conn.commit()
-
-
-def upsert_book_record(conn, book_id, subject_id, update_success, book_name):
-    c = conn.cursor()
-    # 0 (false) and 1 (true)
-    c.execute("INSERT OR REPLACE INTO refreshed_books (book_id,subject_id,update_success,book_name,refresh_time) VALUES (?,?,?,?,?)",
-              (book_id, subject_id, update_success, book_name, strftime('%Y-%m-%d %H:%M:%S', localtime()),))
-    conn.commit()
+from tools.env import *
+from tools.log import logger
+from tools.notification import send_notification
+from tools.db import initSqlite3, record_series_status, record_book_status
 
 
 def refresh_metadata(force_refresh_list=[]):
@@ -45,13 +19,20 @@ def refresh_metadata(force_refresh_list=[]):
     komga = env.komga
     all_series = env.all_series
 
-    # Create a connection to the sqlite database
-    conn = sqlite3.connect("recordsRefreshed.db")
-    c = conn.cursor()
-    c.execute(
-        '''CREATE TABLE IF NOT EXISTS refreshed_series (series_id text primary key,subject_id text ,update_success BOOLEAN,series_name text,bangumi_name text,refresh_time text )''')
-    c.execute(
-        '''CREATE TABLE IF NOT EXISTS refreshed_books (book_id text primary key,subject_id text ,update_success BOOLEAN,book_name text,refresh_time text )''')
+    cursor, conn = initSqlite3()
+
+    # 批量获取所有series_id
+    series_ids = [series['id'] for series in all_series]
+    # 执行一次查询获取所有series_id对应的记录
+    series_records = cursor.execute("SELECT * FROM refreshed_series WHERE series_id IN ({})".format(
+        ','.join('?' for _ in series_ids)), series_ids).fetchall()
+
+    success_count = 0
+    failed_count = 0
+    success_comic = ''
+    failed_comic = ''
+
+    failed_series_ids = []
 
     # Loop through each book series
     for series in all_series:
@@ -62,14 +43,23 @@ def refresh_metadata(force_refresh_list=[]):
         # Skip the series if it's not in the force refresh list
         if len(force_refresh_list) > 0 and not force_refresh_flag:
             continue
-
+        # 找到对应的series_record
+        series_record = next(
+            (record for record in series_records if record[0] == series_id), None)
+        # series_record=c.execute("SELECT * FROM refreshed_series WHERE series_id=?", (series_id,)).fetchone()
         # Check if the series has already been refreshed
-        if c.execute("SELECT * FROM refreshed_series WHERE series_id=? AND update_success=1", (series_id,)).fetchone() and not force_refresh_flag:
-            subject_id = c.execute(
-                "SELECT subject_id FROM refreshed_series WHERE series_id=?", (series_id,)).fetchone()[0]
-            refresh_book_metadata(bgm, komga, subject_id,
-                                  series_id, conn, force_refresh_flag)
-            continue
+        if series_record and not force_refresh_flag:
+            if series_record[2] == 1:
+                subject_id = cursor.execute(
+                    "SELECT subject_id FROM refreshed_series WHERE series_id=?", (series_id,)).fetchone()[0]
+                refresh_book_metadata(bgm, komga, subject_id,
+                                      series_id, conn, force_refresh_flag)
+                continue
+
+            # recheck or skip failed series
+            elif series_record[2] == 0 and not RECHECK_FAILED_SERIES:
+                logger.debug("skip falied series: "+series_name)
+                continue
 
         # Get the subject id from the Correct Bgm Link (CBL) if it exists
         subject_id = None
@@ -84,29 +74,27 @@ def refresh_metadata(force_refresh_list=[]):
         if subject_id == None:
             title = get_title(series_name)
             if title == None:
-                logger.warning("Failed to update series " +
-                               series_name+": None")
-                upsert_series_record(conn, series_id, subject_id,
-                                     0, series_name, "None")
+                failed_count, failed_comic = record_series_status(
+                    conn, series_id, subject_id, 0, series_name, "None", failed_count, failed_comic)
+                failed_series_ids.append(series_id)
                 continue
             search_results = bgm.search_subjects(title)
             if len(search_results) > 0:
                 subject_id = search_results[0]['id']
                 metadata = search_results[0]
             else:
-                logger.warning("Failed to update series " +
-                               series_name+": no subject in bangumi")
-                upsert_series_record(conn, series_id, subject_id,
-                                     0, series_name, "None")
+                failed_count, failed_comic = record_series_status(
+                    conn, series_id, subject_id, 0, series_name, "no subject in bangumi", failed_count, failed_comic)
+                failed_series_ids.append(series_id)
                 continue
 
         komga_metadata = processMetadata.setKomangaSeriesMetadata(
             metadata, series_name, bgm)
 
         if(komga_metadata.isvalid == False):
-            logger.warning("Failed to update series " + series_name)
-            upsert_series_record(conn, series_id, subject_id,
-                                 0, series_name, komga_metadata.title)
+            failed_count, failed_comic = record_series_status(
+                conn, series_id, subject_id, 0, series_name, komga_metadata.title+" metadata invalid", failed_count, failed_comic)
+            failed_series_ids.append(series_id)
             continue
 
         series_data = {
@@ -126,19 +114,31 @@ def refresh_metadata(force_refresh_list=[]):
         # Update the metadata for the series on komga
         isSuccessed = komga.update_series_metadata(series_id, series_data)
         if(isSuccessed):
-            logger.info("Successfully update series " + series_name)
-            # Update the refreshed series in the sqlite database
-            upsert_series_record(conn, series_id, subject_id,
-                                 1, series_name, komga_metadata.title)
+            success_count, success_comic = record_series_status(
+                conn, series_id, subject_id, 1, series_name, komga_metadata.title, success_count, success_comic)
         else:
-            logger.warning("Failed to update series " + series_name)
-            upsert_series_record(conn, series_id, subject_id,
-                                 0, series_name, komga_metadata.title)
+            failed_count, failed_comic = record_series_status(
+                conn, series_id, subject_id, 0, series_name, "komga update failed", failed_count, failed_comic)
+            failed_series_ids.append(series_id)
             continue
 
         refresh_book_metadata(bgm, komga, subject_id,
                               series_id, conn, force_refresh_flag)
-    logger.info("Finish!")
+
+    # Add the series that failed to obtain metadata to the collection
+    if CREATE_FAILED_COLLECTION and failed_series_ids:
+        collection_name="FAILED_COLLECTION"
+        if komga.replace_collection(collection_name, False, failed_series_ids):
+            logger.info(
+                "Successfully replace collection: "+collection_name)
+        else:
+            logger.error("Failed to replace collection: "+collection_name)
+            
+    logger.info("Finish! succeed: "+str(success_count) +
+                ", failed: "+str(failed_count))
+    send_notification("已完成刷新！", "<font color='green'>已成功刷新："+str(success_count)+"</font> \n ---\n 包含以下条目：\n"+success_comic+"\n" +
+                      "<font color='red'>失败数："+str(failed_count)+"</font>\n\n包含以下条目：\n"+failed_comic+"\n" +
+                      strftime('%Y-%m-%d %H:%M:%S', localtime()))
 
 
 def getNumber(s):
@@ -165,22 +165,39 @@ def refresh_book_metadata(bgm, komga, subject_id, series_id, conn, force_refresh
     if subject_id == None:
         return
 
-    related_subjects = []
+    related_subjects = None
     subjects_numbers = []
 
     # Get all books in the series on komga
     books = komga.get_series_books(series_id)
+
+    # 批量获取所有book_id
+    book_ids = [book['id'] for book in books['content']]
+
+    c = conn.cursor()
+    # 执行一次查询获取所有book_id对应的记录
+    book_records = c.execute("SELECT * FROM refreshed_books WHERE book_id IN ({})".format(
+        ','.join('?' for _ in book_ids)), book_ids).fetchall()
 
     # Loop through each book in the series on komga
     for book in books['content']:
         book_id = book['id']
         book_name = book['name']
 
-        c = conn.cursor()
-        if c.execute("SELECT * FROM refreshed_books WHERE book_id=? AND update_success=1", (book_id,)).fetchone() and not force_refresh_flag:
-            continue
+        # 找到对应的book_record
+        book_record = next(
+            (record for record in book_records if record[0] == book_id), None)
+        if book_record and not force_refresh_flag:
+            if book_record[2] == 1:
+                continue
 
-        if not related_subjects:
+            # recheck or skip failed book
+            elif book_record[2] == 0 and not RECHECK_FAILED_BOOKS:
+                logger.debug("skip falied books: "+book_name)
+                continue
+
+        # If related_subjects is still empty[], skip
+        if related_subjects is None:
             # Get the related subjects for the series from bangumi
             related_subjects = [subject for subject in bgm.get_related_subjects(
                 subject_id) if subject['relation'] == "单行本"]
@@ -193,7 +210,8 @@ def refresh_book_metadata(bgm, komga, subject_id, series_id, conn, force_refresh
                     subjects_numbers.append(
                         float(numbers[-1]) if numbers else float(1))
                 except ValueError:
-                    logger.warning("Failed to extract number ")
+                    logger.error("Failed to extract number: " + book_id + ", " +
+                                 subject['name'] + ", " + subject['name_cn'])
 
         # get nunmber from book name
         try:
@@ -209,9 +227,8 @@ def refresh_book_metadata(bgm, komga, subject_id, series_id, conn, force_refresh
                 book_metadata = processMetadata.setKomangaBookMetadata(
                     related_subjects[i]['id'], number, book_name, bgm)
                 if(book_metadata.isvalid == False):
-                    logger.warning("Failed to update book " + book_name)
-                    upsert_book_record(
-                        conn, book_id, related_subjects[i]['id'], 0, book_name)
+                    record_book_status(
+                        conn, book_id, related_subjects[i]['id'], 0, book_name, "metadata invalid")
                     break
 
                 book_data = {
@@ -230,13 +247,11 @@ def refresh_book_metadata(bgm, komga, subject_id, series_id, conn, force_refresh
                 isSuccessed = komga.update_book_metadata(
                     book_id, book_data)
                 if(isSuccessed):
-                    logger.info("Successfully update book " + book_name)
-                    upsert_book_record(
-                        conn, book_id, related_subjects[i]['id'], 1, book_name)
+                    record_book_status(
+                        conn, book_id, related_subjects[i]['id'], 1, book_name, "")
                 else:
-                    logger.warning("Failed to update book " + book_name)
-                    upsert_book_record(
-                        conn, book_id, related_subjects[i]['id'], 0, book_name)
+                    record_book_status(
+                        conn, book_id, related_subjects[i]['id'], 0, book_name, "komga update failed")
                 break
         # 修正`话`序号
         if ep_flag:
@@ -246,6 +261,8 @@ def refresh_book_metadata(bgm, komga, subject_id, series_id, conn, force_refresh
             }
             komga.update_book_metadata(
                 book_id, book_data)
+            record_book_status(
+                conn, book_id, None, 0, book_name, "Only update book number")
 
 
 refresh_metadata(FORCE_REFRESH_LIST)
