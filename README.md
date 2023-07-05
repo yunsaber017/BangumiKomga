@@ -41,6 +41,13 @@ This metadata then gets converted to be compatible to Komga and then gets sent t
 
 ## 快速开始
 
+**Warning:**
+
+Executing this program will result in the loss of old metadata for series and books
+
+执行此程序将导致书籍系列及单册的旧元数据丢失
+
+
 1. Install the requirements using
     ```shell
     conda install --file env_conda.txt
@@ -83,12 +90,15 @@ This metadata then gets converted to be compatible to Komga and then gets sent t
 
 ## 创建失败收藏（可选）
 
-将`CREATE_FAILED_COLLECTION`配置为`True`，程序会在刷新完成后，将所有刷新失败的系列添加到指定收藏（默认名：`FAILED_COLLECTION`）。每次运行都会根据最新数据重新创建此收藏。
+将`CREATE_FAILED_COLLECTION`配置为`True`，程序会在刷新完成后，将所有刷新失败的系列添加到指定收藏（默认名：`FAILED_COLLECTION`）。
+
+每次运行都会根据**本次**运行数据重新创建此收藏（无失败则跳过）。
 
 **Tips:**
 
-在此收藏中按照[如何修正错误元数据](README.md#如何修正错误元数据)操作，启用`RECHECK_FAILED_SERIES`，然后填入`cbl`~~治疗强迫症~~
+- 在此收藏中按照[如何修正错误元数据](README.md#如何修正错误元数据)操作，启用`RECHECK_FAILED_SERIES`，然后填入`cbl`~~治疗强迫症~~
 
+- 如果要将所有失败的系列都添加至收藏，则需要将`RECHECK_FAILED_SERIES`配置为`True`
 
 ## 其他配置说明
 
