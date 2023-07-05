@@ -110,7 +110,7 @@ Executing this program will result in the loss of old metadata for series and bo
 
 **Tips:**
 
-- 在此收藏中按照[如何修正错误元数据](README.md#如何修正错误元数据)操作，启用`RECHECK_FAILED_SERIES`，然后填入`cbl`~~治疗强迫症~~
+- 在此收藏中按照[如何修正错误元数据](#如何修正错误元数据)操作，启用`RECHECK_FAILED_SERIES`，然后填入`cbl`~~治疗强迫症~~
 
 - 如果要将所有失败的系列都添加至收藏，则需要将`RECHECK_FAILED_SERIES`配置为`True`
 
