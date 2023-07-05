@@ -5,7 +5,7 @@
 
 
 import requests
-from log import logger
+from tools.log import logger
 
 
 class KomgaApi:
@@ -117,6 +117,49 @@ class KomgaApi:
             logger.error(f"An error occurred: {e}")
         # return True if the status code indicates success, False otherwise
         return response.status_code == 204
+    
+    def add_collection(self, name, ordered, seriesIds):
+        '''
+        add new collection.
+        '''
+        try:
+            response = requests.post(
+                f'{self.base_url}/collections', auth=self.auth, json={"name": name, "ordered": ordered, "seriesIds": seriesIds})
+            response.raise_for_status()
+        except requests.exceptions.RequestException as e:
+            logger.error(f"An error occurred: {e}")
+        # return True if the status code indicates success, False otherwise
+        return response.status_code == 200
+
+    def get_collection_id_by_search_name(self, name):
+        '''
+        search collection by name
+        return collection id.
+        '''
+        try:
+            response = requests.get(
+                f'{self.base_url}/collections?search={name}', auth=self.auth)
+            response.raise_for_status()
+        except requests.exceptions.RequestException as e:
+            logger.error(f"An error occurred: {e}")
+        return response.json()['content'][0]['id']
+    def delete_collection(self, id):
+        '''
+        delete collection.
+        '''
+        try:
+            response = requests.delete(
+                f'{self.base_url}/collections/{id}', auth=self.auth)
+            response.raise_for_status()
+        except requests.exceptions.RequestException as e:
+            logger.error(f"An error occurred: {e}")
+        # return True if the status code indicates success, False otherwise
+        return response.status_code == 204
+    
+    def replace_collection(self, name, ordered, seriesIds):
+        id=self.get_collection_id_by_search_name(name)
+        if self.delete_collection(id):
+            return self.add_collection(name, ordered, seriesIds)
 
 
 class seriesMetadata:
