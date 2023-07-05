@@ -142,7 +142,11 @@ class KomgaApi:
             response.raise_for_status()
         except requests.exceptions.RequestException as e:
             logger.error(f"An error occurred: {e}")
-        return response.json()['content'][0]['id']
+        collection = response.json()['content']
+        if collection:        
+            return collection[0]['id']
+        else:
+            return None
     def delete_collection(self, id):
         '''
         delete collection.
@@ -158,7 +162,7 @@ class KomgaApi:
     
     def replace_collection(self, name, ordered, seriesIds):
         id=self.get_collection_id_by_search_name(name)
-        if self.delete_collection(id):
+        if id is None or self.delete_collection(id):
             return self.add_collection(name, ordered, seriesIds)
 
 
