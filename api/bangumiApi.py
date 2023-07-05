@@ -5,8 +5,9 @@
 
 
 import requests
+from requests.adapters import HTTPAdapter
 from Levenshtein import distance
-from log import logger
+from tools.log import logger
 from zhconv import convert
 from urllib.parse import quote_plus
 
@@ -15,6 +16,9 @@ class BangumiApi:
     BASE_URL = "https://api.bgm.tv"
 
     def __init__(self, access_token=None):
+        self.r = requests.Session()
+        self.r.mount('http://', HTTPAdapter(max_retries=3))
+        self.r.mount('https://', HTTPAdapter(max_retries=3))
         self.access_token = access_token
         if self.access_token:
             self.refresh_token()
@@ -55,11 +59,11 @@ class BangumiApi:
         '''
         获取搜索结果，并移除非漫画系列。返回具有完整元数据的条目
         '''
-        # query = convert(query, 'zh-cn'))
+        query = convert(query, 'zh-cn')
         url = f"{self.BASE_URL}/search/subject/{quote_plus(query)}?responseGroup=small&type=1&max_results=25"
         # TODO 处理'citrus+ ~柑橘味香气plus~'
         try:
-            response = requests.get(url, headers=self._get_headers())
+            response = self.r.get(url, headers=self._get_headers())
             response.raise_for_status()
         except requests.exceptions.RequestException as e:
             logger.error(f"An error occurred: {e}")
@@ -84,6 +88,8 @@ class BangumiApi:
         for result in results:
             manga_id = result['id']
             manga_metadata = self.get_subject_metadata(manga_id)
+            if not manga_metadata:
+                continue
             # bangumi书籍类型包括：漫画、小说、画集、其他
             # 由于komga不支持小说文字的读取，这里直接忽略`小说`类型，避免返回错误结果
             if manga_metadata["platform"] != "小说":
@@ -109,7 +115,7 @@ class BangumiApi:
         '''
         url = f"{self.BASE_URL}/v0/subjects/{subject_id}"
         try:
-            response = requests.get(url, headers=self._get_headers())
+            response = self.r.get(url, headers=self._get_headers())
             response.raise_for_status()
         except requests.exceptions.RequestException as e:
             logger.error(f"An error occurred: {e}")
@@ -122,7 +128,7 @@ class BangumiApi:
         '''
         url = f"{self.BASE_URL}/v0/subjects/{subject_id}/subjects"
         try:
-            response = requests.get(url, headers=self._get_headers())
+            response = self.r.get(url, headers=self._get_headers())
             response.raise_for_status()
         except requests.exceptions.RequestException as e:
             logger.error(f"An error occurred: {e}")
