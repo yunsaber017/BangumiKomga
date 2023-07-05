@@ -1,6 +1,20 @@
 # Bangumi metadata scraper for Komga
 
-[TOC]
+- [Bangumi metadata scraper for Komga](#bangumi-metadata-scraper-for-komga)
+  - [Introduction](#introduction)
+  - [Features](#features)
+    - [已完成](#已完成)
+    - [TODO](#todo)
+  - [Requirements](#requirements)
+  - [快速开始](#快速开始)
+  - [消息通知（可选）](#消息通知可选)
+  - [创建失败收藏（可选）](#创建失败收藏可选)
+  - [其他配置说明](#其他配置说明)
+  - [如何修正错误元数据](#如何修正错误元数据)
+  - [同步阅读进度](#同步阅读进度)
+  - [命名建议](#命名建议)
+  - [Issues \& Pull Requests](#issues--pull-requests)
+  - [致谢](#致谢)
 
 ## Introduction
 
@@ -27,7 +41,7 @@ This metadata then gets converted to be compatible to Komga and then gets sent t
 - [x] ~~区分单册和单话~~👉未匹配的书也会重新排序
 - [x] ~~添加同人志~~👉推荐使用[LANraragi](https://github.com/Difegue/LANraragi)
 
-处理逻辑见[DESIGN](DESIGN.md)
+处理逻辑见[DESIGN](docs/DESIGN.md)
 
 ### TODO
 
