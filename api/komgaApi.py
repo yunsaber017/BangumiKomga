@@ -6,13 +6,23 @@
 
 import requests
 from tools.log import logger
-
+from requests.adapters import HTTPAdapter
 
 class KomgaApi:
     def __init__(self, base_url, username, password):
         # store the base URL and authentication information for use in other methods
         self.base_url = base_url + '/api/v1'
         self.auth = (username, password)
+
+        self.r = requests.Session()
+        self.r.mount('http://', HTTPAdapter(max_retries=3))
+        self.r.mount('https://', HTTPAdapter(max_retries=3))
+        
+        url = f'{self.base_url}/login/set-cookie'
+        if self.r.get(url, auth=self.auth).status_code != 204:
+            logger.error("Komga: login failed!")
+            exit(1)
+
 
     def get_all_series(self, parameters=None):
         '''
@@ -28,7 +38,7 @@ class KomgaApi:
             url += '?size=50000&unpaged=true'
         try:
             # make a GET request to the URL to retrieve all series
-            response = requests.get(url, auth=self.auth)
+            response = self.r.get(url)
             response.raise_for_status()
         except requests.exceptions.RequestException as e:
             logger.error(f"An error occurred: {e}")
@@ -63,8 +73,8 @@ class KomgaApi:
         Retrieves all series with a specified readlist in the komga comic.
         '''
         try:
-            response = requests.get(
-                f'{self.base_url}/readlists/{readlist_id}', auth=self.auth)
+            response = self.r.get(
+                f'{self.base_url}/readlists/{readlist_id}')
             response.raise_for_status()
         except requests.exceptions.RequestException as e:
             logger.error(f"An error occurred: {e}")
@@ -80,8 +90,8 @@ class KomgaApi:
         '''
         try:
             # make a GET request to the URL to retrieve all books in a given series
-            response = requests.get(
-                f'{self.base_url}/series/{series_id}/books?size=50000&unpaged=true', auth=self.auth)
+            response = self.r.get(
+                f'{self.base_url}/series/{series_id}/books?size=50000&unpaged=true')
             response.raise_for_status()
         except requests.exceptions.RequestException as e:
             logger.error(f"An error occurred: {e}")
@@ -95,8 +105,8 @@ class KomgaApi:
         '''
         try:
             # make a PATCH request to the URL to update the metadata for a given series
-            response = requests.patch(
-                f'{self.base_url}/series/{series_id}/metadata', auth=self.auth, json=metadata)
+            response = self.r.patch(
+                f'{self.base_url}/series/{series_id}/metadata', json=metadata)
             response.raise_for_status()
         except requests.exceptions.RequestException as e:
             logger.error(f"An error occurred: {e}")
@@ -109,8 +119,8 @@ class KomgaApi:
         '''
         try:
             # make a POST request to the URL to update the thumbnail for a given series
-            response = requests.post(
-                f'{self.base_url}/series/{series_id}/thumbnails?selected=true', auth=self.auth, files=thumbnail)
+            response = self.r.post(
+                f'{self.base_url}/series/{series_id}/thumbnails?selected=true', files=thumbnail)
             response.raise_for_status()
         except requests.exceptions.RequestException as e:
             logger.error(f"An error occurred: {e}")
@@ -125,8 +135,8 @@ class KomgaApi:
         '''
         try:
             # make a PATCH request to the URL to update the metadata for a given book
-            response = requests.patch(
-                f'{self.base_url}/books/{book_id}/metadata', auth=self.auth, json=metadata)
+            response = self.r.patch(
+                f'{self.base_url}/books/{book_id}/metadata', json=metadata)
             response.raise_for_status()
         except requests.exceptions.RequestException as e:
             logger.error(f"An error occurred: {e}")
@@ -138,8 +148,8 @@ class KomgaApi:
         add new collection.
         '''
         try:
-            response = requests.post(
-                f'{self.base_url}/collections', auth=self.auth, json={"name": name, "ordered": ordered, "seriesIds": seriesIds})
+            response = self.r.post(
+                f'{self.base_url}/collections', json={"name": name, "ordered": ordered, "seriesIds": seriesIds})
             response.raise_for_status()
         except requests.exceptions.RequestException as e:
             logger.error(f"An error occurred: {e}")
@@ -152,8 +162,8 @@ class KomgaApi:
         return collection id.
         '''
         try:
-            response = requests.get(
-                f'{self.base_url}/collections?search={name}', auth=self.auth)
+            response = self.r.get(
+                f'{self.base_url}/collections?search={name}')
             response.raise_for_status()
         except requests.exceptions.RequestException as e:
             logger.error(f"An error occurred: {e}")
@@ -167,8 +177,8 @@ class KomgaApi:
         delete collection.
         '''
         try:
-            response = requests.delete(
-                f'{self.base_url}/collections/{id}', auth=self.auth)
+            response = self.r.delete(
+                f'{self.base_url}/collections/{id}')
             response.raise_for_status()
         except requests.exceptions.RequestException as e:
             logger.error(f"An error occurred: {e}")
