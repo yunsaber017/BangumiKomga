@@ -64,11 +64,22 @@ Executing this program will result in the loss of old metadata for series and bo
 
 1. Install the requirements using
     ```shell
+    # prepare the environment on your own
     conda install --file env_conda.txt
-
     pip install -r env_pip.txt
+
+    # or use docker compose
+    version: '3'
+    services:
+    bangumikomga:
+        image: chu1shen/bangumikomga:main
+        container_name: bangumikomga
+        volumes:
+        - /path/BangumiKomga/config.py:/app/config/config.py   # see step.2
+        - /path/BangumiKomga/recordsRefreshed.db:/app/recordsRefreshed.db
+        - /path/BangumiKomga/refreshMetadata.log:/app/refreshMetadata.log
     ```
-2. Rename `config.template.py` to `config.py` and edit the url, email and password to match the ones of your komga instance (User needs to have permission to edit the metadata).
+2. Rename `config/config.template.py` to `config/config.py` and edit the url, email and password to match the ones of your komga instance (User needs to have permission to edit the metadata).
 
     `BANGUMI_ACCESS_TOKEN` （可选）用于读取NSFW条目，在 https://next.bgm.tv/demo/access-token 创建个人令牌
 
