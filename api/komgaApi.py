@@ -22,9 +22,10 @@ class KomgaApi:
         '''
         url = f'{self.base_url}/series'
         if parameters:
-            url += f'?{parameters}&size=50000'
+            # 取消默认分页（大小为 2000），以便一次性获取所有系列
+            url += f'?{parameters}&size=50000&unpaged=true'
         else:
-            url += '?size=50000'
+            url += '?size=50000&unpaged=true'
         try:
             # make a GET request to the URL to retrieve all series
             response = requests.get(url, auth=self.auth)
@@ -80,7 +81,7 @@ class KomgaApi:
         try:
             # make a GET request to the URL to retrieve all books in a given series
             response = requests.get(
-                f'{self.base_url}/series/{series_id}/books?size=50000', auth=self.auth)
+                f'{self.base_url}/series/{series_id}/books?size=50000&unpaged=true', auth=self.auth)
             response.raise_for_status()
         except requests.exceptions.RequestException as e:
             logger.error(f"An error occurred: {e}")
