@@ -150,3 +150,18 @@ class BangumiApi:
         except requests.exceptions.RequestException as e:
             logger.error(f"An error occurred: {e}")
         return response.status_code == 204
+
+
+    def get_subject_thumbnail(self, subject_metadata):
+        '''
+        获取漫画封面
+        '''
+        try:
+            thumbnail=requests.get(subject_metadata['images']['large']).content
+        except requests.exceptions.RequestException as e:
+            logger.error(f"An error occurred: {e}")
+            return []
+        files = {
+            'file': (subject_metadata['name'], thumbnail)
+        }
+        return files

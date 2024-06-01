@@ -116,6 +116,14 @@ def refresh_metadata(force_refresh_list=[]):
         if(isSuccessed):
             success_count, success_comic = record_series_status(
                 conn, series_id, subject_id, 1, series_name, komga_metadata.title, success_count, success_comic)
+            # 使用 Bangumi 图片替换原封面
+            if USE_BANGUMI_THUMBNAIL:
+                thumbnail=bgm.get_subject_thumbnail(metadata)
+                replace_thumbnail_result=komga.update_series_thumbnail(series_id, thumbnail)
+                if replace_thumbnail_result:
+                    logger.debug("replace thumbnail for series: "+series_name)
+                else:
+                    logger.error("Failed to replace thumbnail for series: "+series_name)
         else:
             failed_count, failed_comic = record_series_status(
                 conn, series_id, subject_id, 0, series_name, "komga update failed", failed_count, failed_comic)

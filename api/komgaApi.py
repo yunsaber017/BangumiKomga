@@ -102,6 +102,20 @@ class KomgaApi:
             logger.error(f"An error occurred: {e}")
         # return True if the status code indicates success, False otherwise
         return response.status_code == 204
+    
+    def update_series_thumbnail(self, series_id, thumbnail):
+        '''
+        Updates the thumbnail of a specified comic series.
+        '''
+        try:
+            # make a POST request to the URL to update the thumbnail for a given series
+            response = requests.post(
+                f'{self.base_url}/series/{series_id}/thumbnails?selected=true', auth=self.auth, files=thumbnail)
+            response.raise_for_status()
+        except requests.exceptions.RequestException as e:
+            logger.error(f"An error occurred: {e}")
+        # return True if the status code indicates success, False otherwise
+        return response.status_code == 200
 
     def update_book_metadata(self, book_id, metadata):
         '''

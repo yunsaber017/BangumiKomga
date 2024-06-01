@@ -40,6 +40,7 @@ This metadata then gets converted to be compatible to Komga and then gets sent t
 - [x] 可选择处理范围：①所有书籍系列；②指定库的书籍系列；③指定收藏的书籍系列
 - [x] ~~区分单册和单话~~👉未匹配的书也会重新排序
 - [x] ~~添加同人志~~👉推荐使用[LANraragi](https://github.com/Difegue/LANraragi)
+- [x] 可使用 Bangumi 图片替换系列封面
 
 处理逻辑见[DESIGN](docs/DESIGN.md)
 
@@ -135,6 +136,7 @@ Executing this program will result in the loss of old metadata for series and bo
     - ~~意义不明的参数~~，建议设置为`False`，可缩短程序运行时间
     - 如果刷新书时，bangumi 数据不完整，则可以在数据补充后使用此参数修正此书元数据
 
+- `USE_BANGUMI_THUMBNAIL`: 设置为`True`时使用 Bangumi 封面替换 Komga 生成的缩略图
 
 ## 如何修正错误元数据
 
