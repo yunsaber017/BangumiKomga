@@ -117,7 +117,8 @@ def refresh_metadata(force_refresh_list=[]):
             success_count, success_comic = record_series_status(
                 conn, series_id, subject_id, 1, series_name, komga_metadata.title, success_count, success_comic)
             # 使用 Bangumi 图片替换原封面
-            if USE_BANGUMI_THUMBNAIL:
+            # 确保没有上传过海报，避免重复上传
+            if USE_BANGUMI_THUMBNAIL and len(komga.get_series_thumbnails(series_id)) == 0:
                 thumbnail=bgm.get_subject_thumbnail(metadata)
                 replace_thumbnail_result=komga.update_series_thumbnail(series_id, thumbnail)
                 if replace_thumbnail_result:

@@ -136,7 +136,7 @@ Executing this program will result in the loss of old metadata for series and bo
     - ~~意义不明的参数~~，建议设置为`False`，可缩短程序运行时间
     - 如果刷新书时，bangumi 数据不完整，则可以在数据补充后使用此参数修正此书元数据
 
-- `USE_BANGUMI_THUMBNAIL`: 设置为`True`时使用 Bangumi 封面替换 Komga 生成的缩略图
+- `USE_BANGUMI_THUMBNAIL`: 设置为`True`时使用 Bangumi 封面替换 Komga 生成的缩略图（如果未曾上传过海报）
 
 ## 如何修正错误元数据
 

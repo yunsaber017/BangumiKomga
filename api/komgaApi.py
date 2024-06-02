@@ -19,7 +19,9 @@ class KomgaApi:
         self.r.mount('https://', HTTPAdapter(max_retries=3))
         
         url = f'{self.base_url}/login/set-cookie'
-        if self.r.get(url, auth=self.auth).status_code != 204:
+        response = self.r.get(url, auth=self.auth,headers = {
+            'User-Agent': 'chu-shen/BangumiKomga (https://github.com/chu-shen/BangumiKomga)'})
+        if response.status_code != 204:
             logger.error("Komga: login failed!")
             exit(1)
 
@@ -92,6 +94,21 @@ class KomgaApi:
             # make a GET request to the URL to retrieve all books in a given series
             response = self.r.get(
                 f'{self.base_url}/series/{series_id}/books?size=50000&unpaged=true')
+            response.raise_for_status()
+        except requests.exceptions.RequestException as e:
+            logger.error(f"An error occurred: {e}")
+            return []
+        # return the response as a JSON object
+        return response.json()
+    
+    def get_series_thumbnails(self, series_id):
+        '''
+        Retrieves all thumbnails in a specified series in the komga comic.
+        '''
+        try:
+            # make a GET request to the URL to retrieve all thumbnails in a given series
+            response = self.r.get(
+                f'{self.base_url}/series/{series_id}/thumbnails')
             response.raise_for_status()
         except requests.exceptions.RequestException as e:
             logger.error(f"An error occurred: {e}")
