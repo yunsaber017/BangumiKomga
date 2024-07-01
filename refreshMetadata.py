@@ -258,6 +258,16 @@ def refresh_book_metadata(bgm, komga, subject_id, series_id, conn, force_refresh
                 if(isSuccessed):
                     record_book_status(
                         conn, book_id, related_subjects[i]['id'], 1, book_name, "")
+                    
+                    # 使用 Bangumi 图片替换原封面
+                    # 确保没有上传过海报，避免重复上传，排除 komga 生成的封面
+                    if USE_BANGUMI_THUMBNAIL_FOR_BOOK and len(komga.get_book_thumbnails(book_id)) == 1:
+                        thumbnail=bgm.get_subject_thumbnail(related_subjects[i])
+                        replace_thumbnail_result=komga.update_book_thumbnail(book_id, thumbnail)
+                        if replace_thumbnail_result:
+                            logger.debug("replace thumbnail for book: "+book_name)
+                        else:
+                            logger.error("Failed to replace thumbnail for book: "+book_name)
                 else:
                     record_book_status(
                         conn, book_id, related_subjects[i]['id'], 0, book_name, "komga update failed")

@@ -11,6 +11,7 @@
   - [创建失败收藏（可选）](#创建失败收藏可选)
   - [其他配置说明](#其他配置说明)
   - [如何修正错误元数据](#如何修正错误元数据)
+  - [为小说添加元数据](#为小说添加元数据)
   - [同步阅读进度](#同步阅读进度)
   - [命名建议](#命名建议)
   - [Issues \& Pull Requests](#issues--pull-requests)
@@ -40,13 +41,18 @@ This metadata then gets converted to be compatible to Komga and then gets sent t
 - [x] 可选择处理范围：①所有书籍系列；②指定库的书籍系列；③指定收藏的书籍系列
 - [x] ~~区分单册和单话~~👉未匹配的书也会重新排序
 - [x] ~~添加同人志~~👉推荐使用[LANraragi](https://github.com/Difegue/LANraragi)
-- [x] 可使用 Bangumi 图片替换系列封面
+- [x] 可使用 Bangumi 图片替换系列、单册封面
 
 处理逻辑见[DESIGN](docs/DESIGN.md)
 
 ### TODO
 
 - [ ] 使用[bangumi/Archive](https://github.com/bangumi/Archive)离线数据代替联网查询
+- [ ] 限制联网查询频率
+- [ ] 提高 Bangumi 搜索结果匹配准确率，如：排序、评分
+- [ ] 更新 Komga 封面时，判断：类型（'GENERATED'）、大小
+- [ ] 重构元数据更新范围及覆盖逻辑
+
 
 ## Requirements
 
@@ -136,8 +142,9 @@ Executing this program will result in the loss of old metadata for series and bo
     - ~~意义不明的参数~~，建议设置为`False`，可缩短程序运行时间
     - 如果刷新书时，bangumi 数据不完整，则可以在数据补充后使用此参数修正此书元数据
 
-- `USE_BANGUMI_THUMBNAIL`: 设置为`True`时使用 Bangumi 封面替换 Komga 生成的缩略图（如果未曾上传过海报）
-    - 还可以通过调整`Komga 服务器设置->缩略图尺寸（默认 300px，超大 1200px）`来获得更清晰的封面
+- `USE_BANGUMI_THUMBNAIL`: 设置为`True`且未曾上传过系列海报时，使用 Bangumi 封面替换系列海报
+    - 旧海报为 Komga 生成的缩略图，因此还可以通过调整`Komga 服务器设置->缩略图尺寸（默认 300px，超大 1200px）`来获得更清晰的封面
+    - `USE_BANGUMI_THUMBNAIL_FOR_BOOK`: 设置为`True`且未曾上传过单册海报时，使用 Bangumi 封面替换单册海报
 
 ## 如何修正错误元数据
 
@@ -158,6 +165,14 @@ Executing this program will result in the loss of old metadata for series and bo
     - 填入上面提到的信息
     - 将此系列的 id 添加到`FORCE_REFRESH_LIST`，强制刷新此系列所有元数据。id 可在 komga 界面点击书籍系列（对应链接）获得，形如：`'0B79XX3NP97K9'`。填写时以英文引号`''`包裹，英文逗号`,`分割。
     - 正常执行`python refreshMetadata.py`
+
+
+## 为小说添加元数据
+
+Komga 并没有区分漫画与小说。
+
+可以尝试修改代码，使其**只应用**于 Komga 的**小说库**：将`bangumiApi.py`中的`manga_metadata["platform"] != "小说"`修改为`manga_metadata["platform"] == "小说"`
+
 
 ## 同步阅读进度
 
