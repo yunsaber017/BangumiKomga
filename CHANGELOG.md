@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.0](https://github.com/chu-shen/BangumiKomga/compare/v0.5.0...v0.6.0) (2024-07-01)
+
+
+### Features
+
+* 支持更新元数据时替换单册封面 ([d31a0b7](https://github.com/chu-shen/BangumiKomga/commit/d31a0b7fa6f5e05591c2ee6082026a28b1b25684))
+
 ## [0.5.0](https://github.com/chu-shen/BangumiKomga/compare/v0.4.1...v0.5.0) (2024-06-02)
 
 
