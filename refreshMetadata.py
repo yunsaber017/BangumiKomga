@@ -130,8 +130,9 @@ def refresh_metadata(force_refresh_list=[]):
                 conn, series_id, subject_id, 0, series_name, "komga update failed", failed_count, failed_comic)
             failed_series_ids.append(series_id)
             continue
-
-        refresh_book_metadata(bgm, komga, subject_id,
+        
+        if UPDATE_BOOK_METADATA:
+            refresh_book_metadata(bgm, komga, subject_id,
                               series_id, conn, force_refresh_flag)
 
     # Add the series that failed to obtain metadata to the collection
@@ -165,6 +166,15 @@ def getNumber(s):
 
     # Return the list of found numbers
     return numbers
+
+#只有卷时获取元数据
+def isVolumn(book_name):
+    #书名中匹配卷
+    words = ["vol", "volume", "卷", "卷集", "卷"]
+    if any(book_name.find(word) !=-1 for word in words):
+        return True
+    else:
+        return False
 
 
 def refresh_book_metadata(bgm, komga, subject_id, series_id, conn, force_refresh_flag):
@@ -230,7 +240,8 @@ def refresh_book_metadata(bgm, komga, subject_id, series_id, conn, force_refresh
         ep_flag = True
         # Update the metadata for the book if its number matches a related subject number
         for i, number in enumerate(subjects_numbers):
-            if book_number == number:
+            # todo 只考虑单行本匹配
+            if book_number == number and isVolumn(book_name):
                 ep_flag = False
                 # Get the metadata for the book from bangumi
                 book_metadata = processMetadata.setKomangaBookMetadata(
@@ -273,7 +284,7 @@ def refresh_book_metadata(bgm, komga, subject_id, series_id, conn, force_refresh
                         conn, book_id, related_subjects[i]['id'], 0, book_name, "komga update failed")
                 break
         # 修正`话`序号
-        if ep_flag:
+        if ep_flag and UPDATE_CHAPTER_METADATA:
             book_data = {
                 "number": book_number,
                 "numberSort": book_number

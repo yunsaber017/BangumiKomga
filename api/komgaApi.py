@@ -166,6 +166,8 @@ class KomgaApi:
 
         https://github.com/gotson/komga/blob/master/komga/docs/openapi.json#L2935
         '''
+        if not UPDATE_BOOK_NUMBER:
+            metadata.pop('number', None)
         try:
             # make a PATCH request to the URL to update the metadata for a given book
             response = self.r.patch(
