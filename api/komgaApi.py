@@ -7,6 +7,8 @@
 import requests
 from tools.log import logger
 from requests.adapters import HTTPAdapter
+from tools.env import *
+
 
 class KomgaApi:
     def __init__(self, base_url, username, password):
@@ -168,6 +170,7 @@ class KomgaApi:
         '''
         if not UPDATE_BOOK_NUMBER:
             metadata.pop('number', None)
+            metadata.pop('numberSort', None)
         try:
             # make a PATCH request to the URL to update the metadata for a given book
             response = self.r.patch(

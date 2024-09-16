@@ -37,7 +37,9 @@ def refresh_metadata(force_refresh_list=[]):
     # Loop through each book series
     for series in all_series:
         series_id = series['id']
-        series_name = series['name']
+        # todo 处理名字中带-单行本，彩色版等字段
+        origin_series_name = series['name']
+        series_name = handleSeriesName(origin_series_name)
 
         force_refresh_flag = series_id in force_refresh_list
         # Skip the series if it's not in the force refresh list
@@ -170,12 +172,22 @@ def getNumber(s):
 #只有卷时获取元数据
 def isVolumn(book_name):
     #书名中匹配卷
-    words = ["vol", "volume", "卷", "卷集", "卷"]
-    if any(book_name.find(word) !=-1 for word in words):
+    words = ["vol", "volume", "卷", "集", "卷"]
+    if any(book_name.lower().find(word) !=-1 for word in words):
         return True
     else:
         return False
 
+# 处理系列名中包含-单行本，[单行本]，[彩色版]
+# todo处理更多情况
+def handleSeriesName(series_name):
+    if series_name.find("-") != -1:
+        return series_name.split("-")[0]
+    elif series_name.find("[") != -1:
+        return series_name.split("[")[0]
+    elif series_name.find("【") != -1:
+        return series_name.split("【")[0]
+    return  series_name;
 
 def refresh_book_metadata(bgm, komga, subject_id, series_id, conn, force_refresh_flag):
     '''
